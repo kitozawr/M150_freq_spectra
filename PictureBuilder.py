@@ -1,4 +1,5 @@
 from tkinter import *
+import sys
 import matplotlib.pylab as plt
 import seaborn as sns
 import numpy as np
@@ -24,11 +25,21 @@ def do_image_to_array(self, name_of_file):
 def do_data_to_array(self, name_of_file):
     global array
     array= np.fromfile(name_of_file, dtype='>i2')
+    array= np.reshape(array[4:], (array[1],array[3]))
 
 def do_plot (self, args):
+    """Открывает окно с графиком по текущим настройкам в неблокирующем режиме"""
     global plot
-    plot = sns.heatmap(array)
+    plot = sns.heatmap(array, cmap="nipy_spectral")
+    plt.ion()
     plt.show()
+
+def do_exit (self, args):
+    """Выход из работы. Альтернатив CTRL+c затем ENTER"""
+    sys.exit()
+
+def do_echo (self, args):
+    print(args)
 
 def do_print_array (self,args):
     print (array)
