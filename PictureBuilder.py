@@ -19,11 +19,12 @@ graph_title=None
 path=None
 array = np.array([[1,2,3,4], [5,6,7,8], [9,10,11,12]])
 sns.set()
-if os.path.isfile('spectrograph_last_dir.pkl'):
-    with open('spectrograph_last_dir.pkl','rb') as dir_save_file:
+address_of_last_dir_savefile='/home/student/Desktop/spectrograph_last_dir.pkl'
+if os.path.isfile(address_of_last_dir_savefile):
+    with open(address_of_last_dir_savefile,'rb') as dir_save_file:
         initdir= pickle.load(dir_save_file)
 else:
-    with open('spectrograph_last_dir.pkl','wb') as dir_save_file:
+    with open(address_of_last_dir_savefile,'wb') as dir_save_file:
         pickle.dump('/', dir_save_file)
 
 def do_rotate(self, args):
@@ -47,7 +48,7 @@ def do_ask_open_file(self, args):
     root.filename =  filedialog.askopenfilename(initialdir = initdir,title = "Select file",filetypes=(("Data files only", "*.dat"),("PNG files only","*.png"),("All files","*.*")))
     filename_extension = os.path.splitext(root.filename)[-1]
     directory= os.path.dirname(root.filename)
-    with open('spectrograph_last_dir.pkl','wb') as dir_save_file:
+    with open(address_of_last_dir_savefile,'wb') as dir_save_file:
         pickle.dump(directory, dir_save_file)
 
     if  filename_extension == ".png":
@@ -55,10 +56,13 @@ def do_ask_open_file(self, args):
     elif filename_extension == ".dat":
         do_data_to_array(self='', name_of_file=root.filename)
 
+    filename = root.filename
+    basepathname =os.path.basename(os.path.dirname(filename))
+    cli.do_set_parameters(pathname=os.path.dirname(filename), dirname=basepathname)
+
 def do_image_to_array(self, name_of_file):
     """Открыть PNG: image_to_array <путь>"""
     global array
-    print (name_of_file)
     array= plt.imread(name_of_file)
 
 def do_data_to_array(self, name_of_file):
@@ -90,7 +94,7 @@ def do_save_parameters (self, args):
     with open(path+'spectrograph_parameters.pkl','wb') as dir_save_file:
         pickle.dump(param_turple, dir_save_file)
 
-def do_set_parameters (self, pathname="", frequency=0, grating=0, dirname=None, rotate=False, scaletype='lin', title=None):
+def do_set_parameters (self, pathname="", frequency=0, grating=0, dirname=False, rotate=False, scaletype='lin', title=None):
     global freq, grate, rot180, scale, graph_title, path
 
     path=pathname
@@ -101,7 +105,6 @@ def do_set_parameters (self, pathname="", frequency=0, grating=0, dirname=None, 
            param_turple= pickle.load(dir_save_file)
     else:
         param_turple=(None,None,None,None,None)
-    print("Path is "+path)
     #---begin freq
     if (frequency):
         freq=frequency
@@ -131,7 +134,7 @@ def do_set_parameters (self, pathname="", frequency=0, grating=0, dirname=None, 
         print(GREENCOLOR+"Rotate "+NORMALCOLOR +'True')
     else:
         rot180=False
-        print(REDCOLOR+"Rotate "+NORMALCOLOR +'False')
+        print(GREENCOLOR+"Rotate "+NORMALCOLOR +'False')
     #---begin scale
     if (scaletype):
         scale=scaletype
@@ -145,7 +148,13 @@ def do_set_parameters (self, pathname="", frequency=0, grating=0, dirname=None, 
     #---begin title
     if (title):
         graph_title=title
+        print(PINKCOLOR+"Title "+NORMALCOLOR)
     elif (dirname):
-        graph_title=name
+        graph_title=dirname
+        print(PINKCOLOR+"Title (dir)"+NORMALCOLOR)
+    elif (param_turple[4]):
+        graph_title=param_turple[4]
+        print(GREENCOLOR+"Title "+NORMALCOLOR )
     else:
         graph_title= "Частотно-угловой спектр филамента"
+        print(REDCOLOR+"Title "+NORMALCOLOR)
