@@ -84,12 +84,13 @@ def do_print_array (self,args):
     print (array)
 
 def do_save_parameters (self, args):
+    """Сохраняет параметры осей и заголовка в файл spectrograph_parameters.pkl в папку загруженного снимка"""
     global freq, grate, rot180, scale, graph_title, path
     param_turple=(freq, grate, rot180, scale, graph_title)
     with open(path+'spectrograph_parameters.pkl','wb') as dir_save_file:
         pickle.dump(param_turple, dir_save_file)
 
-def do_set_parameters (self, pathname="", frequency=0, grating=0, dirname=None, rotate=None, scaletype='lin', title=None):
+def do_set_parameters (self, pathname="", frequency=0, grating=0, dirname=None, rotate=False, scaletype='lin', title=None):
     global freq, grate, rot180, scale, graph_title, path
 
     path=pathname
@@ -101,7 +102,7 @@ def do_set_parameters (self, pathname="", frequency=0, grating=0, dirname=None, 
     else:
         param_turple=(None,None,None,None,None)
     print("Path is "+path)
-    #---
+    #---begin freq
     if (frequency):
         freq=frequency
         print(PINKCOLOR+"Frequency "+NORMALCOLOR +str(freq))
@@ -111,15 +112,40 @@ def do_set_parameters (self, pathname="", frequency=0, grating=0, dirname=None, 
     else:
         freq=800
         print(REDCOLOR+"Frequency "+NORMALCOLOR +str(freq))
-    #---
+    #---begin grate
     if (grating):
-        grate=int(grating)
+        grate=grating
+        print(PINKCOLOR+"Grating "+NORMALCOLOR +str(grate))
+    elif (param_turple[1]):
+        grate=param_turple[1]
+        print(GREENCOLOR+"Grating "+NORMALCOLOR +str(grate))
+    else:
+        grate=300
+        print(REDCOLOR+"Grating "+NORMALCOLOR +str(grate))
+    #---begin rot
     if (rotate):
         rot180=True
+        print(PINKCOLOR+"Rotate "+NORMALCOLOR +'True')
+    elif (param_turple[2]):
+        rot180=True
+        print(GREENCOLOR+"Rotate "+NORMALCOLOR +'True')
+    else:
+        rot180=False
+        print(REDCOLOR+"Rotate "+NORMALCOLOR +'False')
+    #---begin scale
     if (scaletype):
         scale=scaletype
+        print(PINKCOLOR+"Scale "+NORMALCOLOR +scale)
+    elif (param_turple[3]):
+        scale=param_turple[3]
+        print(GREENCOLOR+"Scale "+NORMALCOLOR +scale)
+    else:
+        scale='lin'
+        print(REDCOLOR+"Scale "+NORMALCOLOR +scale)
+    #---begin title
     if (title):
         graph_title=title
     elif (dirname):
         graph_title=name
-
+    else:
+        graph_title= "Частотно-угловой спектр филамента"
