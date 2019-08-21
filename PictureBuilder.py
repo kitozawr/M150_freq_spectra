@@ -1,5 +1,7 @@
 from tkinter import *
+from tkinter import filedialog
 import sys
+import os
 import matplotlib.pylab as plt
 import seaborn as sns
 import numpy as np
@@ -12,10 +14,16 @@ def do_hello(self, args):
     """Просто выводит 'hello world' на экран"""
     print ("hello world")
 
-def do_ask_open_file(self, initdir="/", filetype="*.jpg;*.dat"):
+def do_ask_open_file(self, initdir="/"):
+    """Открытие GUI окна выбора файла для открытия"""
     root = Tk()
-    root.filename =  filedialog.askopenfilename(initialdir = initdir,title = "Select file",filetypes = (("Allowed types",filetype),("all files","*.*")))
-    return (root.filename)
+    root.filename =  filedialog.askopenfilename(initialdir = initdir,title = "Select file",filetypes=(("Data files only", "*.dat"),("PNG files only","*.png"),("All files","*.*")))
+    filename_extension = os.path.splitext(root.filename)[-1]
+
+    if  filename_extension == ".png":
+        do_image_to_array(self='', name_of_file=root.filename)
+    elif filename_extension == ".dat":
+        do_data_to_array(self='', name_of_file=root.filename)
 
 def do_image_to_array(self, name_of_file):
     global array
