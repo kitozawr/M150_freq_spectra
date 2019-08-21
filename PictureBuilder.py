@@ -7,6 +7,16 @@ import matplotlib.pylab as plt
 import seaborn as sns
 import numpy as np
 
+REDCOLOR = '\033[1;31;40m'
+GREENCOLOR = '\033[0;32;47m'
+PINKCOLOR= '\033[1;35;40m'
+NORMALCOLOR =  '\033[0m'
+freq=None
+grate=None
+rot180=None
+scale=None
+graph_title=None
+path=None
 array = np.array([[1,2,3,4], [5,6,7,8], [9,10,11,12]])
 sns.set()
 if os.path.isfile('spectrograph_last_dir.pkl'):
@@ -66,8 +76,50 @@ def do_plot (self, args):
 
 def do_exit (self, args):
     """Выход из работы. Альтернатива CTRL+c затем ENTER"""
+    print (REDCOLOR +  "\nЗавершение работы..."+ NORMALCOLOR)
     sys.exit()
 
 def do_print_array (self,args):
     """Выводит массив в текстовом режиме"""
     print (array)
+
+def do_save_parameters (self, args):
+    global freq, grate, rot180, scale, graph_title, path
+    param_turple=(freq, grate, rot180, scale, graph_title)
+    with open(path+'spectrograph_parameters.pkl','wb') as dir_save_file:
+        pickle.dump(param_turple, dir_save_file)
+
+def do_set_parameters (self, pathname="", frequency=0, grating=0, dirname=None, rotate=None, scaletype='lin', title=None):
+    global freq, grate, rot180, scale, graph_title, path
+
+    path=pathname
+    if (pathname!=''):
+        path= path+"/"
+    if os.path.isfile(path+'spectrograph_parameters.pkl'):
+        with open(path+'spectrograph_parameters.pkl','rb') as dir_save_file:
+           param_turple= pickle.load(dir_save_file)
+    else:
+        param_turple=(None,None,None,None,None)
+    print("Path is "+path)
+    #---
+    if (frequency):
+        freq=frequency
+        print(PINKCOLOR+"Frequency "+NORMALCOLOR +str(freq))
+    elif (param_turple[0]):
+        freq=param_turple[0]
+        print(GREENCOLOR+"Frequency "+NORMALCOLOR +str(freq))
+    else:
+        freq=800
+        print(REDCOLOR+"Frequency "+NORMALCOLOR +str(freq))
+    #---
+    if (grating):
+        grate=int(grating)
+    if (rotate):
+        rot180=True
+    if (scaletype):
+        scale=scaletype
+    if (title):
+        graph_title=title
+    elif (dirname):
+        graph_title=name
+
