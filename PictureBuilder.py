@@ -55,18 +55,16 @@ def do_ask_open_file(self, args):
         do_image_to_array(self='', name_of_file=root.filename)
     elif filename_extension == ".dat":
         do_data_to_array(self='', name_of_file=root.filename)
-
     filename = root.filename
     basepathname =os.path.basename(os.path.dirname(filename))
     do_set_parameters(self='',pathname=os.path.dirname(filename), dirname=basepathname)
 
+
 def do_image_to_array(self, name_of_file):
-    """Открыть PNG: image_to_array <путь>"""
     global array
     array= plt.imread(name_of_file)
 
 def do_data_to_array(self, name_of_file):
-    """Открыть DAT: data_to_array <путь>"""
     global array
     array= np.fromfile(name_of_file, dtype='>i2')
     array= np.reshape(array[4:], (array[1],array[3]))
@@ -86,6 +84,32 @@ def do_exit (self, args):
 def do_print_array (self,args):
     """Выводит массив в текстовом режиме"""
     print (array)
+
+def do_set_freq (self, args):
+    """Изменят частоту на указанную set_freq <int>"""
+    global freq
+    freq=args
+    print(PINKCOLOR+"Frequency "+NORMALCOLOR +str(freq))
+def do_set_grate (self, args):
+    """Изменят решетку на указанную set_grate<int>"""
+    global grate
+    grate=args
+    print(PINKCOLOR+"Grating "+NORMALCOLOR +str(grate))
+def do_set_scale(self, args):
+    """Изменят шкалу на указанную set_scale <lin> or <log>"""
+    global scale
+    scale=args
+    print(PINKCOLOR+"Scale "+NORMALCOLOR +scale)
+def do_set_title(self, args):
+    """Изменят заголовок на указанный set_title <str>"""
+    global graph_title
+    graph_title=args
+    print(PINKCOLOR+"Title "+NORMALCOLOR +graph_title)
+def do_print_parameters(self, args):
+    """Вывод параметров в порядке аргументов у функции set"""
+    global freq, grate, rot180, scale, graph_title, path
+    param_turple=(freq, grate, rot180, scale, graph_title)
+    print (param_turple)
 
 def do_save_parameters (self, args):
     """Сохраняет параметры осей и заголовка в файл spectrograph_parameters.pkl в папку загруженного снимка"""
