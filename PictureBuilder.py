@@ -58,7 +58,7 @@ def do_ask_open_file(self, args):
 
     filename = root.filename
     basepathname =os.path.basename(os.path.dirname(filename))
-    cli.do_set_parameters(pathname=os.path.dirname(filename), dirname=basepathname)
+    do_set_parameters(self='',pathname=os.path.dirname(filename), dirname=basepathname)
 
 def do_image_to_array(self, name_of_file):
     """Открыть PNG: image_to_array <путь>"""
@@ -144,17 +144,17 @@ def do_set_parameters (self, pathname="", frequency=0, grating=0, dirname=False,
         print(GREENCOLOR+"Scale "+NORMALCOLOR +scale)
     else:
         scale='lin'
-        print(REDCOLOR+"Scale "+NORMALCOLOR +scale)
+        print(GREENCOLOR+"Scale "+NORMALCOLOR +scale)
     #---begin title
     if (title):
         graph_title=title
-        print(PINKCOLOR+"Title "+NORMALCOLOR)
-    elif (dirname):
+        print(PINKCOLOR+"Title "+NORMALCOLOR+ graph_title)
+    elif (dirname and dirname!='..'):
         graph_title=dirname
-        print(PINKCOLOR+"Title (dir)"+NORMALCOLOR)
+        print(PINKCOLOR+"Title (dir) "+NORMALCOLOR +graph_title)
     elif (param_turple[4]):
         graph_title=param_turple[4]
-        print(GREENCOLOR+"Title "+NORMALCOLOR )
+        print(GREENCOLOR+"Title "+NORMALCOLOR+graph_title )
     else:
         graph_title= "Частотно-угловой спектр филамента"
-        print(REDCOLOR+"Title "+NORMALCOLOR)
+        print(REDCOLOR+"Title "+NORMALCOLOR+ grath_title)
