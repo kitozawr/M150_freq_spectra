@@ -6,6 +6,7 @@ import pickle
 import matplotlib.pylab as plt
 import seaborn as sns
 import numpy as np
+import pandas as pd
 
 REDCOLOR = '\033[1;31;40m'
 GREENCOLOR = '\033[0;32;47m'
@@ -69,10 +70,41 @@ def do_data_to_array(self, name_of_file):
     array= np.fromfile(name_of_file, dtype='>i2')
     array= np.reshape(array[4:], (array[1],array[3]))
 
+def get_freq():
+    global grate, array, freq
+    image_size=array.shape[1]
+    if (grate==300):
+        offset=1001
+        dispersion=0.12505
+    elif (grate==600):
+        offset=1011
+        dispersion=0.05918
+    else:
+        print("Wrong grate")
+        return None
+    freq_array=[round((i-1-image_size+offset)*dispersion+freq) for i in range(1,image_size+1)]
+    return freq_array
+
+def get_angles():
+    global array
+    image_size=array.shape[0]
+    angle=[round(0.0175*(i-1)) for i in range(1,image_size+1)]
+    return angle
+
 def do_plot (self, args):
     """Открывает окно с графиком и текущими настройками в неблокирующем режиме"""
-    global plot
-    plot = sns.heatmap(array, cmap="nipy_spectral")
+    global plot, graph_title, rot180
+    if (rot180):
+        do_rotate(self='')
+        do_rotate(self='')
+    freq_array=get_freq()
+    angle_array=get_angles()
+    data_frame= pd.DataFrame(array, columns= freq_array, index= angle_array)
+    plot = sns.heatmap(data_frame, cmap="nipy_spectral")
+    plot.set_ylabel('Угол, мрад')
+    plot.set_xlabel('Длина волны, нм')
+    plot.set_title(graph_title)
+    plt.tight_layout()
     plt.ion()
     plt.show()
 
