@@ -1,5 +1,6 @@
 from tkinter import *
 from tkinter import filedialog
+from math import floor, ceil
 import sys
 import os
 import pickle
@@ -19,6 +20,8 @@ scale=None
 graph_title=None
 path=None
 array = np.array([[1,2,3,4], [5,6,7,8], [9,10,11,12]])
+freq_step=50
+angle_step=5
 sns.set()
 address_of_last_dir_savefile='/home/student/Desktop/spectrograph_last_dir.pkl'
 if os.path.isfile(address_of_last_dir_savefile):
@@ -71,6 +74,8 @@ def do_data_to_array(self, name_of_file):
     array= np.reshape(array[4:], (array[1],array[3]))
 
 def get_freq():
+    """Функция uз старых файлов Origin"""
+    global array
     global grate, array, freq
     image_size=array.shape[1]
     if (grate==300):
@@ -86,24 +91,50 @@ def get_freq():
     return freq_array
 
 def get_angles():
+    """Функция из старых файлов Origin"""
     global array
     image_size=array.shape[0]
-    angle=[round(0.0175*(i-1)) for i in range(1,image_size+1)]
+    angle=[round(-0.0175*(i-1))+11 for i in range(1,image_size+1)]
     return angle
+
+def find_nearest(array, value):
+    """Index of nearest"""
+    array= np.asarray(array)
+    idx =(np.abs(array-value)).argmin()
+    return idx
+
+def do_set_freq_step(self,args):
+    """Выбор шага оси графика: set... <int>"""
+    global freq_step
+    freq_step=args
+def do_set_angle_step(self,args):
+    """Выбор шага оси графика: set... <int>"""
+    global angle_step
+    angle_step=args
 
 def do_plot (self, args):
     """Открывает окно с графиком и текущими настройками в неблокирующем режиме"""
-    global plot, graph_title, rot180
+    global plot, graph_title, rot180, freq_step, angle_step
     if (rot180):
         do_rotate(self='')
         do_rotate(self='')
     freq_array=get_freq()
     angle_array=get_angles()
     data_frame= pd.DataFrame(array, columns= freq_array, index= angle_array)
-    plot = sns.heatmap(data_frame, cmap="nipy_spectral")
+    plot = sns.heatmap(data_frame, cmap="nipy_spectral", cbar_kws={'label':'Относительная интенсивность'})
     plot.set_ylabel('Угол, мрад')
     plot.set_xlabel('Длина волны, нм')
     plot.set_title(graph_title)
+    min_freq=freq_step*ceil(freq_array[0]/freq_step)
+    max_freq=freq_step*floor(freq_array[-1]/freq_step)
+    new_label=range(min_freq,max_freq+freq_step,freq_step)
+    new_tick= [find_nearest(freq_array,new_label[i]) for i in range (0, len(new_label))]
+    plt.xticks(ticks=new_tick, labels=new_label, rotation=0)
+    min_angle=angle_step*ceil(angle_array[-1]/angle_step)
+    max_angle=angle_step*floor(angle_array[0]/angle_step)
+    new_label=range(min_angle,max_angle+angle_step,angle_step)
+    new_tick= [find_nearest(angle_array,new_label[i]) for i in range (0, len(new_label))]
+    plt.yticks(ticks=new_tick, labels=new_label)
     plt.tight_layout()
     plt.ion()
     plt.show()
