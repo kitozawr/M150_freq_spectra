@@ -23,7 +23,7 @@ array = np.array([[1,2,3,4], [5,6,7,8], [9,10,11,12]])
 freq_step=50
 angle_step=5
 sns.set()
-address_of_last_dir_savefile='/home/student/Desktop/spectrograph_last_dir.pkl'
+address_of_last_dir_savefile='/home/student/Desktop/PictureBuilder/spectrograph_last_dir.pkl'
 if os.path.isfile(address_of_last_dir_savefile):
     with open(address_of_last_dir_savefile,'rb') as dir_save_file:
         initdir= pickle.load(dir_save_file)
@@ -50,18 +50,19 @@ def do_ask_open_file(self, args):
     """Открытие GUI окна выбора файла для открытия"""
     root = Tk()
     root.filename =  filedialog.askopenfilename(initialdir = initdir,title = "Select file",filetypes=(("Data files only", "*.dat"),("PNG files only","*.png"),("All files","*.*")))
-    filename_extension = os.path.splitext(root.filename)[-1]
-    directory= os.path.dirname(root.filename)
-    with open(address_of_last_dir_savefile,'wb') as dir_save_file:
-        pickle.dump(directory, dir_save_file)
+    if  (type(root.filename)==str):
+        filename_extension = os.path.splitext(root.filename)[-1]
+        directory= os.path.dirname(root.filename)
+        with open(address_of_last_dir_savefile,'wb') as dir_save_file:
+            pickle.dump(directory, dir_save_file)
 
-    if  filename_extension == ".png":
-        do_image_to_array(self='', name_of_file=root.filename)
-    elif filename_extension == ".dat":
-        do_data_to_array(self='', name_of_file=root.filename)
-    filename = root.filename
-    basepathname =os.path.basename(os.path.dirname(filename))
-    do_set_parameters(self='',pathname=os.path.dirname(filename), dirname=basepathname)
+        if  filename_extension == ".png":
+            do_image_to_array(self='', name_of_file=root.filename)
+        elif filename_extension == ".dat":
+            do_data_to_array(self='', name_of_file=root.filename)
+        filename = root.filename
+        basepathname =os.path.basename(os.path.dirname(filename))
+        do_set_parameters(self='',pathname=os.path.dirname(filename), dirname=basepathname)
 
 
 def do_image_to_array(self, name_of_file):
