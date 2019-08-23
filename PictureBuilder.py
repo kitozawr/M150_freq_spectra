@@ -220,12 +220,12 @@ def do_print_array (self,args):
 def do_set_freq (self, args):
     """Изменят частоту на указанную set_freq <int>"""
     global freq
-    freq=args
+    freq=int(args)
     print(PINKCOLOR+"Frequency "+NORMALCOLOR +str(freq))
 def do_set_grate (self, args):
     """Изменят решетку на указанную set_grate<int>"""
     global grate
-    grate=args
+    grate=int(args)
     print(PINKCOLOR+"Grating "+NORMALCOLOR +str(grate))
 def do_set_scale(self, args):
     """Изменят шкалу на указанную set_scale <lin> or <log>"""
