@@ -68,6 +68,12 @@ def do_list_rem_filter(self, number):
     global filters
     del filters[int(number)]
 
+def do_save_filters (self, args):
+    """Сохраняет список фильтров в файл spectrograph_filters.pkl в папку загруженного снимка"""
+    global filters, path
+    with open(path+'spectrograph_filters.pkl','wb') as dir_save_file:
+        pickle.dump(filters, dir_save_file)
+
 def do_print_filters(self, args):
     """Выводит словарь фильтров"""
     global filters
@@ -217,7 +223,7 @@ def do_save_parameters (self, args):
         pickle.dump(param_turple, dir_save_file)
 
 def do_set_parameters (self, pathname="", frequency=0, grating=0, dirname=False, rotate=False, scaletype='lin', title=None):
-    global freq, grate, rot180, scale, graph_title, path
+    global freq, grate, rot180, scale, graph_title, path, filters
 
     path=pathname
     if (pathname!=''):
@@ -227,6 +233,9 @@ def do_set_parameters (self, pathname="", frequency=0, grating=0, dirname=False,
            param_turple= pickle.load(dir_save_file)
     else:
         param_turple=(None,None,None,None,None)
+    if os.path.isfile(path+'spectrograph_filters.pkl'):
+        with open(path+'spectrograph_filters.pkl','rb') as dir_save_file:
+           filters= pickle.load(dir_save_file)
     #---begin freq
     if (frequency):
         freq=frequency
