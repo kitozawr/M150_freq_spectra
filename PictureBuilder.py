@@ -1,13 +1,13 @@
 from tkinter import *
 from tkinter import filedialog
 from math import floor, ceil
+from scipy import interpolate
 import sys
 import os
 import pickle
 import matplotlib.pylab as plt
 import seaborn as sns
 import numpy as np
-import pandas as pd
 
 REDCOLOR = '\033[1;31;40m'
 GREENCOLOR = '\033[0;32;47m'
@@ -155,17 +155,36 @@ def do_set_angle_step(self,args):
 
 def do_plot (self, args):
     """Открывает окно с графиком и текущими настройками в неблокирующем режиме"""
-    global plot, graph_title, rot180, freq_step, angle_step
+    global plot, graph_title, rot180, freq_step, angle_step, array, scale, grate, filters
     if (rot180):
         do_rotate(self='')
         do_rotate(self='')
     freq_array=get_freq()
     angle_array=get_angles()
-    data_frame= pd.DataFrame(array, columns= freq_array, index= angle_array)
-    plot = sns.heatmap(data_frame, cmap="nipy_spectral", cbar_kws={'label':'Относительная интенсивность'})
+
+    image_size=array.shape[1]
+    array_factor= np.ones(image_size)
+    for key, value in filters.items():
+        filter_array=np.loadtxt(address_of_filters+'/'+value+'.txt')
+        x=(filter_array[:,0]).transpose()
+        y=(filter_array[:,1]).transpose()
+        filter_function= interpolate.interp1d(x,y, fill_value="extrapolate")
+        filter_vector_function= np.vectorize(filter_function)
+        array_factor*=filter_vector_function(freq_array)
+    array_factor_reciprocal=np.reciprocal(array_factor)
+    array_factor_rec_diag=np.diag(array_factor_reciprocal)
+    array-=0.6*array[1,1] #вычитание фона
+    array= array @ array_factor_rec_diag
+
+   array *= 1.0/array.max()
+    if (scale=='log'):
+        array= np.log(array)
+
+    plot = sns.heatmap(array, cmap="nipy_spectral", cbar_kws={'label':'Относительная интенсивность'})
     plot.set_ylabel('Угол, мрад')
     plot.set_xlabel('Длина волны, нм')
     plot.set_title(graph_title)
+
     min_freq=freq_step*ceil(freq_array[0]/freq_step)
     max_freq=freq_step*floor(freq_array[-1]/freq_step)
     new_label=range(min_freq,max_freq+freq_step,freq_step)
@@ -176,6 +195,7 @@ def do_plot (self, args):
     new_label=range(min_angle,max_angle+angle_step,angle_step)
     new_tick= [find_nearest(angle_array,new_label[i]) for i in range (0, len(new_label))]
     plt.yticks(ticks=new_tick, labels=new_label)
+
     plt.tight_layout()
     plt.ion()
     plt.show()
