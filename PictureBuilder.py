@@ -6,27 +6,30 @@ import sys
 import os
 import pickle
 import matplotlib.pylab as plt
-import seaborn as sns
+import seaborn as sns; sns.set()
 import numpy as np
 
 REDCOLOR = '\033[1;31;40m'
 GREENCOLOR = '\033[0;32;47m'
 PINKCOLOR= '\033[1;35;40m'
 NORMALCOLOR =  '\033[0m'
+
 freq=None
 grate=None
 rot180=None
 scale=None
 graph_title=None
 path=None
+
+address_of_last_dir_savefile='/home/student/Desktop/PictureBuilder/spectrograph_last_dir.pkl'
+address_of_filters='/home/student/Desktop/PictureBuilder/Filters'
+
 array = np.array([[1,2,3,4], [5,6,7,8], [9,10,11,12]])
 freq_step=50
 angle_step=5
-sns.set()
-address_of_last_dir_savefile='/home/student/Desktop/PictureBuilder/spectrograph_last_dir.pkl'
-address_of_filters='/home/student/Desktop/PictureBuilder/Filters'
 filters={}
 filters_number=0
+
 if os.path.isfile(address_of_last_dir_savefile):
     with open(address_of_last_dir_savefile,'rb') as dir_save_file:
         initdir= pickle.load(dir_save_file)
@@ -159,9 +162,14 @@ def do_plot (self, args):
     if (rot180):
         do_rotate(self='')
         do_rotate(self='')
+    if (array[1,1]<=1):
+        array-=0.6*array[1,1] #вычитание фона из изображений
+    else:
+        array-=floor(0.6*array[1,1]) #вычитание из импортированных dat
     freq_array=get_freq()
     angle_array=get_angles()
 
+    #Применение фильтров
     image_size=array.shape[1]
     array_factor= np.ones(image_size)
     for key, value in filters.items():
@@ -173,10 +181,9 @@ def do_plot (self, args):
         array_factor*=filter_vector_function(freq_array)
     array_factor_reciprocal=np.reciprocal(array_factor)
     array_factor_rec_diag=np.diag(array_factor_reciprocal)
-    array-=0.6*array[1,1] #вычитание фона
     array= array @ array_factor_rec_diag
 
-   array *= 1.0/array.max()
+    array *= 1.0/array.max()
     if (scale=='log'):
         array= np.log(array)
 
@@ -185,6 +192,7 @@ def do_plot (self, args):
     plot.set_xlabel('Длина волны, нм')
     plot.set_title(graph_title)
 
+    #Изменение меток на осях
     min_freq=freq_step*ceil(freq_array[0]/freq_step)
     max_freq=freq_step*floor(freq_array[-1]/freq_step)
     new_label=range(min_freq,max_freq+freq_step,freq_step)
@@ -244,6 +252,7 @@ def do_save_parameters (self, args):
 
 def do_set_parameters (self, pathname="", frequency=0, grating=0, dirname=False, rotate=False, scaletype='lin', title=None):
     global freq, grate, rot180, scale, graph_title, path, filters
+    print (PINKCOLOR+"Введенный/"+GREENCOLOR+'сохраненный'+REDCOLOR +"/по умолчанию" + NORMALCOLOR +" параметр:")
 
     path=pathname
     if (pathname!=''):
