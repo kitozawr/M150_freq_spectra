@@ -250,7 +250,7 @@ def do_save_parameters (self, args):
     with open(path+'spectrograph_parameters.pkl','wb') as dir_save_file:
         pickle.dump(param_turple, dir_save_file)
 
-def do_set_parameters (self, pathname="", frequency=0, grating=0, dirname=False, rotate=False, scaletype='lin', title=None):
+def do_set_parameters (self, pathname="", frequency=0, grating=0, dirname=False, rotate=False, scaletype=False, title=None):
     global freq, grate, rot180, scale, graph_title, path, filters
     print (PINKCOLOR+"Введенный/"+GREENCOLOR+'сохраненный'+REDCOLOR +"/по умолчанию" + NORMALCOLOR +" параметр:")
 
