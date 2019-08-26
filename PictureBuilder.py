@@ -304,7 +304,7 @@ def do_set_parameters (self, pathname="", frequency=0, grating=0, dirname=False,
         print(GREENCOLOR+"Scale "+NORMALCOLOR +scale)
     else:
         scale='lin'
-        print(GREENCOLOR+"Scale "+NORMALCOLOR +scale)
+        print(REDCOLOR+"Scale "+NORMALCOLOR +scale)
     #---begin title
     if (title):
         graph_title=title
