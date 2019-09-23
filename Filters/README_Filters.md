@@ -14,9 +14,9 @@ __Файлы фильтров используют расширение .txt и 
 |         |           ns7 |   ns7_old.txt |
 |         |            1p |        ns1old |
 |         |            10 |  ns10_old.txt |
-|         |          ns13 |    NS-13      |
+|         |          ns13 |    NS-13FITTED      |
 |         |               |               |
-|  июль   |            8p |       NS-8GOST        |
+|  июль   |            8p |       NS-8FITTED        |
 |         |            3p |        NS-3P  |
 |         |          ns12 |     NS-12          |
 |         |          ns10 |  ns10_new.txt |
