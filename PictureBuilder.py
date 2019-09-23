@@ -63,8 +63,9 @@ def do_ask_add_filter(self,args):
 def do_list_add_filter(self, name_of_file):
     """Добавить новый фильтр. Принимает название файла без расширения. Ищет в папке Filters"""
     global filters, filters_number
-    filters_number += 1
-    filters[filters_number]=name_of_file
+    if (name_of_file!=''):
+        filters_number += 1
+        filters[filters_number]=name_of_file
 
 def do_list_rem_filter(self, number):
     """Удалить фильтр. Принимает номер в списке <int>"""
@@ -172,6 +173,7 @@ def do_plot (self, args):
     #Применение фильтров
     image_size=array.shape[1]
     array_factor= np.ones(image_size)
+    do_list_add_filter("", name_of_file="Camera")
     for key, value in filters.items():
         filter_array=np.loadtxt(address_of_filters+'/'+value+'.txt')
         x=(filter_array[:,0]).transpose()
@@ -179,6 +181,7 @@ def do_plot (self, args):
         filter_function= interpolate.interp1d(x,y, fill_value="extrapolate")
         filter_vector_function= np.vectorize(filter_function)
         array_factor*=filter_vector_function(freq_array)
+    do_list_rem_filter('', len(filters))
     array_factor_reciprocal=np.reciprocal(array_factor)
     array_factor_rec_diag=np.diag(array_factor_reciprocal)
     array= array @ array_factor_rec_diag
@@ -251,7 +254,7 @@ def do_save_parameters (self, args):
         pickle.dump(param_turple, dir_save_file)
 
 def do_set_parameters (self, pathname="", frequency=0, grating=0, dirname=False, rotate=False, scaletype=False, title=None):
-    global freq, grate, rot180, scale, graph_title, path, filters
+    global freq, grate, rot180, scale, graph_title, path, filters, filters_number
     print (PINKCOLOR+"Введенный/"+GREENCOLOR+'сохраненный'+REDCOLOR +"/по умолчанию" + NORMALCOLOR +" параметр:")
 
     path=pathname
@@ -265,6 +268,7 @@ def do_set_parameters (self, pathname="", frequency=0, grating=0, dirname=False,
     if os.path.isfile(path+'spectrograph_filters.pkl'):
         with open(path+'spectrograph_filters.pkl','rb') as dir_save_file:
            filters= pickle.load(dir_save_file)
+           filters_number=len(filters)
     #---begin freq
     if (frequency):
         freq=frequency
