@@ -172,9 +172,10 @@ def do_plot (self, args):
         do_rotate(self='')
         do_rotate(self='')
     if (array[1,1]<=1):
-        array-=0.6*array[1,1] #вычитание фона из изображений
+        array-=array[1,1] #вычитание фона из изображений
     else:
-        array-=floor(0.6*array[1,1]) #вычитание из импортированных dat
+        array-=array[1,1] #вычитание из импортированных dat
+    array[array<0] = 0
     freq_array=get_freq()
     angle_array=get_angles()
 
