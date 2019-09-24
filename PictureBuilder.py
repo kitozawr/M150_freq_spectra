@@ -182,6 +182,13 @@ def do_plot (self, args):
     image_size=array.shape[1]
     array_factor= np.ones(image_size)
     do_list_add_filter("", name_of_file="Camera")
+    if   (grate==300):
+        do_list_add_filter("", name_of_file="300")
+    elif (grate==600):
+        do_list_add_filter("", name_of_file="600")
+    elif (grate==900):
+        do_list_add_filter("", name_of_file="900")
+
     for key, value in filters.items():
         filter_array=np.loadtxt(address_of_filters+'/'+value+'.txt')
         x=(filter_array[:,0]).transpose()
@@ -189,6 +196,7 @@ def do_plot (self, args):
         filter_function= interpolate.interp1d(x,y, fill_value="extrapolate")
         filter_vector_function= np.vectorize(filter_function)
         array_factor*=filter_vector_function(freq_array)
+    do_list_rem_filter('', len(filters))
     do_list_rem_filter('', len(filters))
     array_factor_reciprocal=np.reciprocal(array_factor)
     array_factor_rec_diag=np.diag(array_factor_reciprocal)
