@@ -68,6 +68,12 @@ def do_list_add_filter(self, name_of_file):
         filters_number += 1
         filters[filters_number]=name_of_file
 
+def do_list_clear_filters(self):
+    """Очистить список фильтров и сбросить их счетчик"""
+    global filters, filters_number
+    filters={}
+    filters_number=0
+
 def do_list_rem_filter(self, number):
     """Удалить фильтр. Принимает номер в списке <int>"""
     global filters
