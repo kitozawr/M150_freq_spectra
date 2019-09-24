@@ -49,7 +49,6 @@ def do_hello(self, args):
 def do_ask_add_filter(self,args):
     """Открытие GUI окна выбора файла для добавления"""
     global address_of_filters
-    root = Tk()
     root.filename =  filedialog.askopenfilename(initialdir = address_of_filters,title = "Select file",filetypes=(("Filters", "*.txt"),("All files","*.*")))
     filename = root.filename
     if  (type(filename)==str):
@@ -58,7 +57,6 @@ def do_ask_add_filter(self,args):
         base_name = os.path.splitext(base)[0]
         if  filename_extension == ".txt":
             do_list_add_filter(self='', name_of_file=base_name)
-    root.destroy()
 
 def do_list_add_filter(self, name_of_file):
     """Добавить новый фильтр. Принимает название файла без расширения. Ищет в папке Filters"""
@@ -92,7 +90,6 @@ def do_ask_save_file(self, args):
 def do_ask_open_file(self, args):
     """Открытие GUI окна выбора файла для открытия"""
     global initdir
-    root = Tk()
     root.filename =  filedialog.askopenfilename(initialdir = initdir,title = "Select file",filetypes=(("Data files only", "*.dat"),("PNG files only","*.png"),("All files","*.*")))
     if  (type(root.filename)==str):
         filename_extension = os.path.splitext(root.filename)[-1]
@@ -107,7 +104,6 @@ def do_ask_open_file(self, args):
         filename = root.filename
         basepathname =os.path.basename(os.path.dirname(filename))
         do_set_parameters(self='',pathname=os.path.dirname(filename), dirname=basepathname)
-    root.destroy()
 
 def do_image_to_array(self, name_of_file):
     global array
