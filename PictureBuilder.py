@@ -165,12 +165,18 @@ def do_set_angle_step(self,args):
     global angle_step
     angle_step=args
 
+def do_set_rotate(self,args):
+    """Включение режима поворота на 180"""
+    global rot180
+    if (args):
+        rot180=True
+
 def do_plot (self, args):
     """Открывает окно с графиком и текущими настройками в неблокирующем режиме"""
     global plot, graph_title, rot180, freq_step, angle_step, array, scale, grate, filters, filters_number
     if (rot180):
-        do_rotate(self='')
-        do_rotate(self='')
+        do_rotate(self='', args='')
+        do_rotate(self='', args='')
     if (array[1,1]<=1):
         array-=array[1,1] #вычитание фона из изображений
     else:
