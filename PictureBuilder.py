@@ -26,7 +26,7 @@ address_of_filters='/home/student/Desktop/PictureBuilder/Filters'
 
 array = np.array([[1,2,3,4], [5,6,7,8], [9,10,11,12]])
 freq_step=50
-angle_step=5
+angle_step=2
 filters={}
 filters_number=0
 
@@ -167,7 +167,7 @@ def do_set_angle_step(self,args):
 
 def do_plot (self, args):
     """Открывает окно с графиком и текущими настройками в неблокирующем режиме"""
-    global plot, graph_title, rot180, freq_step, angle_step, array, scale, grate, filters
+    global plot, graph_title, rot180, freq_step, angle_step, array, scale, grate, filters, filters_number
     if (rot180):
         do_rotate(self='')
         do_rotate(self='')
@@ -199,6 +199,7 @@ def do_plot (self, args):
         array_factor*=filter_vector_function(freq_array)
     do_list_rem_filter('', len(filters))
     do_list_rem_filter('', len(filters))
+    filters_number= filters_number-2
     array_factor_reciprocal=np.reciprocal(array_factor)
     array_factor_rec_diag=np.diag(array_factor_reciprocal)
     array= array @ array_factor_rec_diag
