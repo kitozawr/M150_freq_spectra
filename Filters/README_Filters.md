@@ -6,7 +6,7 @@ __Файлы фильтров используют расширение .txt и 
 | апрель  |         ns10t | ns10t_old.txt |
 |         |             7 |   ns7_old.txt |
 |         |             1 |       NS-1old |
-|         |        6 part |               |
+|         |        6 part |       --        |
 |         |         ns 10 |  ns10_old.txt |
 |         |          ns9p |         NS-9P |
 |         |            2p |       NS-2P   |
@@ -18,7 +18,7 @@ __Файлы фильтров используют расширение .txt и 
 |         |               |               |
 |  июль   |            8p |       NS-8FITTED        |
 |         |            3p |        NS-3P  |
-|         |          ns12 |     NS-12FITTED          |
+|         |          ns12 |    NS-12FITTED_3mm         |
 |         |          ns10 |  ns10_new.txt |
 |         |             1 |   ns1_new.txt |
 |         |            9p |        NS-9P  |
@@ -31,18 +31,18 @@ __Файлы фильтров используют расширение .txt и 
 |:------:|--------------:|--------------:|
 | август |       ns10old |  ns10_old.txt |
 |        |         ns10  |  ns10_new.txt |
-|        |          ns12 |      NS-12FITTED       |
+|        |          ns12 |     NS-12FITTED_3mm      |
 |        |         ns12p |       NS-12FITTED      |
 |        |          ns11 |        NS-11OLD       |
 |        |             6 |       NS-6old |
 |        |             1 |   ns1_new.txt |
 |        |         10old |  ns10_old.txt |
 |        |               |               |
-|  июль  |            12 |    NS-12FITTED        |
+|  июль  |            12 |    NS-12FITTED_3mm        |
 |        |         10old |  ns10_old.txt |
 |        |          ns10 |  ns10_new.txt |
 |        |           12p |    NS-12FITTED       |
 |        |            11 |      NS-11OLD         |
-|        |          ns12 |    NS-12FITTED        |
+|        |          ns12 |     NS-12FITTED_3mm        |
 |        |               |               |
 
