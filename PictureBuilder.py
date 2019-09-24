@@ -49,8 +49,7 @@ def do_hello(self, args):
 def do_ask_add_filter(self,args):
     """Открытие GUI окна выбора файла для добавления"""
     global address_of_filters
-    root.filename =  filedialog.askopenfilename(initialdir = address_of_filters,title = "Select file",filetypes=(("Filters", "*.txt"),("All files","*.*")))
-    filename = root.filename
+    filename =  filedialog.askopenfilename(initialdir = address_of_filters,title = "Select file",filetypes=(("Filters", "*.txt"),("All files","*.*")))
     if  (type(filename)==str):
         filename_extension = os.path.splitext(filename)[-1]
         base = os.path.basename(filename)
