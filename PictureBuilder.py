@@ -323,8 +323,8 @@ def do_set_parameters (self, pathname="", frequency=0, grating=0, dirname=False,
         rot180=True
         print(GREENCOLOR+"Rotate "+NORMALCOLOR +'True')
     else:
-        rot180=False
-        print(REDCOLOR+"Rotate "+NORMALCOLOR +'False')
+        rot180=True
+        print(REDCOLOR+"Rotate "+NORMALCOLOR +'True')
     #---begin scale
     if (scaletype):
         scale=scaletype
