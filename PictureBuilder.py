@@ -68,16 +68,17 @@ def do_list_add_filter(self, name_of_file):
         filters_number += 1
         filters[filters_number]=name_of_file
 
-def do_list_clear_filters(self):
+def do_list_clear_filters(self, args):
     """Очистить список фильтров и сбросить их счетчик"""
     global filters, filters_number
     filters={}
     filters_number=0
 
 def do_list_rem_filter(self, number):
-    """Удалить фильтр. Принимает номер в списке <int>"""
-    global filters
-    del filters[int(number)]
+    """Удалить последний фильтр. Принимает номер в списке <int>"""
+    global filters, filters_number
+    del filters[filters_number]
+    filters_number -=1
 
 def do_save_filters (self, args):
     """Сохраняет список фильтров в файл spectrograph_filters.pkl в папку загруженного снимка"""
@@ -209,8 +210,8 @@ def do_plot (self, args):
     array_factor_rec_diag=np.diag(array_factor_reciprocal)
     array= array @ array_factor_rec_diag
 
-    array[938, 1295]=0 #выбитый пиксель с 1 августа, после фильтров становится сильнее центрального пробоя
-    array *= 1.0/array.max()
+    MAX=array.max()
+    array *= 1.0/MAX
     print (array.max(), "at ",np.where(array == np.amax(array)))
     if (scale=='log'):
         array= np.log(array)
