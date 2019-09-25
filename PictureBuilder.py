@@ -37,10 +37,10 @@ else:
     with open(address_of_last_dir_savefile,'wb') as dir_save_file:
         pickle.dump('/', dir_save_file)
 
-def do_rotate(self, args):
-    """Вращает на 90 градусов против часовой"""
+def do_rotate(self, args=1):
+    """Вращает на 90 градусов против часовой n раз"""
     global array
-    array=np.rot90(array)
+    array=np.rot90(array, k=int(args))
 
 def do_hello(self, args):
     """Просто выводит 'hello world' на экран"""
@@ -175,8 +175,7 @@ def do_plot (self, args):
     """Открывает окно с графиком и текущими настройками в неблокирующем режиме"""
     global plot, graph_title, rot180, freq_step, angle_step, array, scale, grate, filters, filters_number
     if (rot180):
-        do_rotate(self='', args='')
-        do_rotate(self='', args='')
+        do_rotate(self='', args=2)
     if (array[1,1]<=1):
         array-=array[1,1] #вычитание фона из изображений
     else:
