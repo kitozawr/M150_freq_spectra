@@ -210,7 +210,9 @@ def do_plot (self, args):
     array_factor_rec_diag=np.diag(array_factor_reciprocal)
     array= array @ array_factor_rec_diag
 
+    array[938, 1295]=0 #выбитый пиксель с 1 августа, после фильтров становится сильнее центрального пробоя
     array *= 1.0/array.max()
+    print (array.max(), "at ",np.where(array == np.amax(array)))
     if (scale=='log'):
         array= np.log(array)
 
