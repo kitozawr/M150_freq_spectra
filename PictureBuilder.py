@@ -94,7 +94,10 @@ def do_print_filters(self, args):
 def do_ask_save_file(self, args):
     """Открытие GUI окна выбора файла для сохранения"""
     global plot
-    file_name= filedialog.asksaveasfilename(filetypes=(("PNG files only","*.png"),("All files","*.*")))
+    root = Tk()
+    root.withdraw()
+    root.filename = filedialog.asksaveasfilename(filetypes=(("PNG files only","*.png"),("All files","*.*")))
+    file_name= root.filename
     plt.savefig(file_name)
 
 def do_ask_open_file(self, args):
