@@ -29,6 +29,7 @@ freq_step=50
 angle_step=2
 filters={}
 filters_number=0
+this_array_has_a_plot= False
 
 if os.path.isfile(address_of_last_dir_savefile):
     with open(address_of_last_dir_savefile,'rb') as dir_save_file:
@@ -50,8 +51,6 @@ def do_ask_add_filter(self,args):
     """Открытие GUI окна выбора файла для добавления"""
     global address_of_filters
     root = Tk()
-    root.withdraw()
-    root.filename =  filedialog.askopenfilename(initialdir = address_of_filters,title = "Select file",filetypes=(("Filters", "*.txt"),("All files","*.*")))
     filename = root.filename
     if  (type(filename)==str):
         filename_extension = os.path.splitext(filename)[-1]
@@ -89,7 +88,7 @@ def do_save_filters (self, args):
 def do_print_filters(self, args):
     """Выводит словарь фильтров"""
     global filters
-    print(filters)
+    print("Filters: "filters)
 
 def do_ask_save_file(self, args):
     """Открытие GUI окна выбора файла для сохранения"""
@@ -122,11 +121,13 @@ def do_ask_open_file(self, args):
     root.destroy()
 
 def do_image_to_array(self, name_of_file):
-    global array
+    global array, this_array_has_a_plot
+    this_array_has_a_plot= False
     array= plt.imread(name_of_file)
 
 def do_data_to_array(self, name_of_file):
-    global array
+    global array, this_array_has_a_plot
+    this_array_has_a_plot= False
     array= np.fromfile(name_of_file, dtype='>i2')
     array= np.reshape(array[4:], (array[1],array[3]))
 
@@ -177,68 +178,72 @@ def do_set_rotate(self,args):
 
 def do_plot (self, args):
     """Открывает окно с графиком и текущими настройками в неблокирующем режиме"""
-    global plot, graph_title, rot180, freq_step, angle_step, array, scale, grate, filters, filters_number
-    if (rot180):
-        do_rotate(self='', args=2)
-    if (array[1,1]<=1):
-        array-=array[1,1] #вычитание фона из изображений
-    else:
-        array-=array[1,1] #вычитание из импортированных dat
-    array[array<0] = 0
-    freq_array=get_freq()
-    angle_array=get_angles()
+    global this_array_has_a_plot, plot, graph_title, rot180, freq_step, angle_step, array, scale, grate, filters, filters_number
+    if (this_array_has_a_plot):
+        print ("You have already made plot for this file. Please open another file (or the same again) and call plot(). Duplicate is prohibited")
+    else :
+        this_array_has_a_plot= True
+        if (rot180):
+            do_rotate(self='', args=2)
+        if (array[1,1]<=1):
+            array-=array[1,1] #вычитание фона из изображений
+        else:
+            array-=array[1,1] #вычитание из импортированных dat
+        array[array<0] = 0
+        freq_array=get_freq()
+        angle_array=get_angles()
 
-    #Применение фильтров
-    image_size=array.shape[1]
-    array_factor= np.ones(image_size)
-    do_list_add_filter("", name_of_file="Camera")
-    if   (grate==300):
-        do_list_add_filter("", name_of_file="300")
-    elif (grate==600):
-        do_list_add_filter("", name_of_file="600")
-    elif (grate==900):
-        do_list_add_filter("", name_of_file="900")
+        #Применение фильтров
+        image_size=array.shape[1]
+        array_factor= np.ones(image_size)
+        do_list_add_filter("", name_of_file="Camera")
+        if   (grate==300):
+            do_list_add_filter("", name_of_file="300")
+        elif (grate==600):
+            do_list_add_filter("", name_of_file="600")
+        elif (grate==900):
+            do_list_add_filter("", name_of_file="900")
 
-    for key, value in filters.items():
-        filter_array=np.loadtxt(address_of_filters+'/'+value+'.txt')
-        x=(filter_array[:,0]).transpose()
-        y=(filter_array[:,1]).transpose()
-        filter_function= interpolate.interp1d(x,y, fill_value="extrapolate")
-        filter_vector_function= np.vectorize(filter_function)
-        array_factor*=filter_vector_function(freq_array)
-    do_list_rem_filter('', len(filters))
-    do_list_rem_filter('', len(filters))
-    filters_number= filters_number-2
-    array_factor_reciprocal=np.reciprocal(array_factor)
-    array_factor_rec_diag=np.diag(array_factor_reciprocal)
-    array= array @ array_factor_rec_diag
+        for key, value in filters.items():
+            filter_array=np.loadtxt(address_of_filters+'/'+value+'.txt')
+            x=(filter_array[:,0]).transpose()
+            y=(filter_array[:,1]).transpose()
+            filter_function= interpolate.interp1d(x,y, fill_value="extrapolate")
+            filter_vector_function= np.vectorize(filter_function)
+            array_factor*=filter_vector_function(freq_array)
+        do_list_rem_filter('', len(filters))
+        do_list_rem_filter('', len(filters))
+        filters_number= filters_number-2
+        array_factor_reciprocal=np.reciprocal(array_factor)
+        array_factor_rec_diag=np.diag(array_factor_reciprocal)
+        array= array @ array_factor_rec_diag
 
-    MAX=array.max()
-    array *= 1.0/MAX
-    print (array.max(), "at ",np.where(array == np.amax(array)))
-    if (scale=='log'):
-        array= np.log(array)
+        MAX=array.max()
+        array *= 1.0/MAX
+        print (array.max(), "at ",np.where(array == np.amax(array)))
+        if (scale=='log'):
+            array= np.log(array)
 
-    plot = sns.heatmap(array, cmap="nipy_spectral", cbar_kws={'label':'Относительная интенсивность'})
-    plot.set_ylabel('Угол, мрад')
-    plot.set_xlabel('Длина волны, нм')
-    plot.set_title(graph_title)
+        plot = sns.heatmap(array, cmap="nipy_spectral", cbar_kws={'label':'Относительная интенсивность'})
+        plot.set_ylabel('Угол, мрад')
+        plot.set_xlabel('Длина волны, нм')
+        plot.set_title(graph_title)
 
-    #Изменение меток на осях
-    min_freq=freq_step*ceil(freq_array[0]/freq_step)
-    max_freq=freq_step*floor(freq_array[-1]/freq_step)
-    new_label=range(min_freq,max_freq+freq_step,freq_step)
-    new_tick= [find_nearest(freq_array,new_label[i]) for i in range (0, len(new_label))]
-    plt.xticks(ticks=new_tick, labels=new_label, rotation=0)
-    min_angle=angle_step*ceil(angle_array[-1]/angle_step)
-    max_angle=angle_step*floor(angle_array[0]/angle_step)
-    new_label=range(min_angle,max_angle+angle_step,angle_step)
-    new_tick= [find_nearest(angle_array,new_label[i]) for i in range (0, len(new_label))]
-    plt.yticks(ticks=new_tick, labels=new_label)
+        #Изменение меток на осях
+        min_freq=freq_step*ceil(freq_array[0]/freq_step)
+        max_freq=freq_step*floor(freq_array[-1]/freq_step)
+        new_label=range(min_freq,max_freq+freq_step,freq_step)
+        new_tick= [find_nearest(freq_array,new_label[i]) for i in range (0, len(new_label))]
+        plt.xticks(ticks=new_tick, labels=new_label, rotation=0)
+        min_angle=angle_step*ceil(angle_array[-1]/angle_step)
+        max_angle=angle_step*floor(angle_array[0]/angle_step)
+        new_label=range(min_angle,max_angle+angle_step,angle_step)
+        new_tick= [find_nearest(angle_array,new_label[i]) for i in range (0, len(new_label))]
+        plt.yticks(ticks=new_tick, labels=new_label)
 
-    plt.tight_layout()
-    plt.ion()
-    plt.show()
+        plt.tight_layout()
+        plt.ion()
+        plt.show()
 
 def do_exit (self, args):
     """Выход из работы. Альтернатива CTRL+c затем ENTER"""
@@ -351,3 +356,5 @@ def do_set_parameters (self, pathname="", frequency=0, grating=0, dirname=False,
     else:
         graph_title= "Частотно-угловой спектр филамента"
         print(REDCOLOR+"Title "+NORMALCOLOR+ grath_title)
+    #---begin filters
+    do_print_filters(self='', args='')
