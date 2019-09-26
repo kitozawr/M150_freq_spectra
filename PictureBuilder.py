@@ -88,7 +88,7 @@ def do_save_filters (self, args):
 def do_print_filters(self, args):
     """Выводит словарь фильтров"""
     global filters
-    print("Filters: "filters)
+    print("Filters: ", filters)
 
 def do_ask_save_file(self, args):
     """Открытие GUI окна выбора файла для сохранения"""
