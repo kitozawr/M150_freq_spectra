@@ -106,8 +106,7 @@ def do_ask_open_file(self, args):
     root = Tk()
     root.withdraw()
     root.filename =  filedialog.askopenfilename(initialdir = initdir,title = "Select file",filetypes=(("Data files only", "*.dat"),("PNG files only","*.png"),("All files","*.*")))
-    print (root.filename)
-    if  (type(root.filename)==str):
+    if  (type(root.filename)!=''):
         filename_extension = os.path.splitext(root.filename)[-1]
         directory= os.path.dirname(root.filename)
         with open(address_of_last_dir_savefile,'wb') as dir_save_file:
