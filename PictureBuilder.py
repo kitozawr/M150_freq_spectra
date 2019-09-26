@@ -51,6 +51,8 @@ def do_ask_add_filter(self,args):
     """Открытие GUI окна выбора файла для добавления"""
     global address_of_filters
     root = Tk()
+    root.withdraw()
+    root.filename =  filedialog.askopenfilename(initialdir = address_of_filters,title = "Select file",filetypes=(("Filters", "*.txt"),("All files","*.*")))
     filename = root.filename
     if  (type(filename)==str):
         filename_extension = os.path.splitext(filename)[-1]
