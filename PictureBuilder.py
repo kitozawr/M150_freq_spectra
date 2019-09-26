@@ -181,6 +181,7 @@ def do_plot (self, args):
     global this_array_has_a_plot, plot, graph_title, rot180, freq_step, angle_step, array, scale, grate, filters, filters_number
     if (this_array_has_a_plot):
         print ("You have already made plot for this file. Please open another file (or the same again) and call plot(). Duplicate is prohibited")
+
     else :
         this_array_has_a_plot= True
         if (rot180):
@@ -220,7 +221,6 @@ def do_plot (self, args):
 
         MAX=array.max()
         array *= 1.0/MAX
-        print (array.max(), "at ",np.where(array == np.amax(array)))
         if (scale=='log'):
             array= np.log(array)
 
