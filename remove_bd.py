@@ -1,3 +1,5 @@
+import numpy as np
+
 def read_bd_map(bd_map_file):
 	"""
 	Read breakdown map, as specified in bd_map_file.
@@ -16,7 +18,7 @@ def read_bd_map(bd_map_file):
 	bd_mult = np.genfromtxt(bd_map_file, skip_header=1, max_rows=single_start_num-1, dtype = 'uint16')
 	bd_single = np.genfromtxt(bd_map_file, skip_header=single_start_num+1, dtype = 'uint16')
 	print("Bd map has been successfully read.")
-	
+
 	return (bd_mult, bd_single)
 
 def apply_bd_map(data, bd_mult, bd_single):

@@ -8,6 +8,8 @@ import pickle
 import matplotlib.pylab as plt
 import seaborn as sns; sns.set()
 import numpy as np
+from PictureBuilder.remove_bd import *
+
 
 REDCOLOR = '\033[1;31;40m'
 GREENCOLOR = '\033[0;32;47m'
@@ -23,6 +25,7 @@ path=None
 
 address_of_last_dir_savefile='/home/student/Desktop/PictureBuilder/spectrograph_last_dir.pkl'
 address_of_filters='/home/student/Desktop/PictureBuilder/Filters'
+address_of_bd_map='/home/student/Desktop/PictureBuilder/bd_map.txt'
 
 array = np.array([[1,2,3,4], [5,6,7,8], [9,10,11,12]])
 freq_step=50
@@ -186,6 +189,9 @@ def do_plot (self, args):
 
     else :
         this_array_has_a_plot= True
+        #Подготовка массива
+        (bd_mult, bd_single)= read_bd_map(address_of_bd_map)
+        apply_bd_map(array, bd_mult, bd_single)
         if (rot180):
             do_rotate(self='', args=2)
         if (array[1,1]<=1):
