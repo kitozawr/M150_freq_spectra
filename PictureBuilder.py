@@ -48,10 +48,10 @@ else:
     with open(address_of_last_dir_savefile,'wb') as dir_save_file:
         pickle.dump('/', dir_save_file)
 
-def do_set_freq_limits (self,f_from, f_to):
+def do_set_freq_limits (self,f):
     #выбор пределов построения графика set(от [нм],до [нм])
-    freq_from=f_from
-    freq_to=  f_to
+    freq_from=f[0]
+    freq_to=  f[1]
        
 def do_processing_all_files_in_a_folder(self,args):
     """Для всех файлов папки, где в последний раз был открыт файл, идет переконвертация (битые области, фильтры, поворот) сырых данных в готовый массив для дальнейшей обработки"""
