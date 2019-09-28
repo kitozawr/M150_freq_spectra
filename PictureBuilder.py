@@ -195,11 +195,11 @@ def find_nearest(array, value):
 def do_set_freq_step(self,args):
     """Выбор шага оси графика: set... <int>"""
     global freq_step
-    freq_step=args
+    freq_step=int (args)
 def do_set_angle_step(self,args):
     """Выбор шага оси графика: set... <int>"""
     global angle_step
-    angle_step=args
+    angle_step=int (args)
 
 def do_set_rotate(self,args):
     """Включение режима поворота на 180"""
