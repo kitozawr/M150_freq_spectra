@@ -23,6 +23,7 @@ scale=None
 graph_title=None
 path=None
 basename=None
+filename=None
 
 adress_of_home_dir='/home/student/Desktop/PictureBuilder/'
 
@@ -54,14 +55,15 @@ def do_set_freq_limits (self,f_from, f_to):
        
 def do_processing_all_files_in_a_folder(self,args):
     """Для всех файлов папки, где в последний раз был открыт файл, идет переконвертация (битые области, фильтры, поворот) сырых данных в готовый массив для дальнейшей обработки"""
-    global array
-    if (pathname)
-    for file in os.listdir("/mydir"):
-        if file.endswith(".png"):
-            do_image_to_array(self='', file)
-        elif file.endswith(".dat"):
-            do_data_to_array(self='', file)
-        do_plot(self='', args='no_plot')
+    global array, filename
+    pathname=os.path.dirname(filename)
+    if (pathname):
+        for file in os.listdir("pathname"):
+            if file.endswith(".png"):
+                do_image_to_array(self='', file)
+            elif file.endswith(".dat"):
+                do_data_to_array(self='', file)
+            do_plot(self='', args='no_plot')
         
 def do_rotate(self, args=1):
     """Вращает на 90 градусов против часовой n раз. Количество поворотов обязательно"""
@@ -128,7 +130,7 @@ def do_ask_save_file(self, args):
 
 def do_ask_open_file(self, args):
     """Открытие GUI окна выбора файла для открытия"""
-    global initdir, basename
+    global initdir, basename, filename
     root = Tk()
     root.withdraw()
     root.filename =  filedialog.askopenfilename(initialdir = initdir,title = "Select file",filetypes=(("Data files only", "*.dat"),("PNG files only","*.png"),("All files","*.*")))
