@@ -51,8 +51,8 @@ else:
 def do_set_freq_limits (self,f):
     #выбор пределов построения графика set(от [нм],до [нм])
     global freq_from, freq_to
-    print (freq_from)
-    print (freq_to)
+    freq_from= int (f.split()[0])
+    freq_to=   int (f.split()[1])
        
 def do_processing_all_files_in_a_folder(self,args):
     """Для всех файлов папки, где в последний раз был открыт файл, идет переконвертация (битые области, фильтры, поворот) сырых данных в готовый массив для дальнейшей обработки"""
