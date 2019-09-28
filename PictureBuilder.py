@@ -22,10 +22,14 @@ rot180=None
 scale=None
 graph_title=None
 path=None
+basename=None
 
-address_of_last_dir_savefile='/home/student/Desktop/PictureBuilder/spectrograph_last_dir.pkl'
-address_of_filters='/home/student/Desktop/PictureBuilder/Filters'
-address_of_bd_map='/home/student/Desktop/PictureBuilder/bd_map.txt'
+adress_of_home_dir='/home/student/Desktop/PictureBuilder/'
+
+address_of_last_dir_savefile= adress_of_home_dir+'spectrograph_last_dir.pkl'
+address_of_filters= adress_of_home_dir+'Filters'
+address_of_bd_map= adress_of_home_dir+'bd_map.txt'
+address_of_save_fig= adress_of_home_dir+ 'Saves'
 
 array = np.array([[1,2,3,4], [5,6,7,8], [9,10,11,12]])
 freq_step=50
@@ -41,6 +45,17 @@ else:
     with open(address_of_last_dir_savefile,'wb') as dir_save_file:
         pickle.dump('/', dir_save_file)
 
+def do_processing_all_files_in_a_folder(self,args):
+    """Для всех файлов папки, где в последний раз был открыт файл, идет переконвертация (битые области, фильтры, поворот) сырых данных в готовый массив для дальнейшей обработки"""
+    global array
+    if (pathname)
+    for file in os.listdir("/mydir"):
+        if file.endswith(".png"):
+            do_image_to_array(self='', file)
+        elif file.endswith(".dat"):
+            do_data_to_array(self='', file)
+        do_plot(self='', args='no_plot')
+        
 def do_rotate(self, args=1):
     """Вращает на 90 градусов против часовой n раз. Количество поворотов обязательно"""
     global array
@@ -106,13 +121,14 @@ def do_ask_save_file(self, args):
 
 def do_ask_open_file(self, args):
     """Открытие GUI окна выбора файла для открытия"""
-    global initdir
+    global initdir, basename
     root = Tk()
     root.withdraw()
     root.filename =  filedialog.askopenfilename(initialdir = initdir,title = "Select file",filetypes=(("Data files only", "*.dat"),("PNG files only","*.png"),("All files","*.*")))
     if  (root.filename):
         filename_extension = os.path.splitext(root.filename)[-1]
         directory= os.path.dirname(root.filename)
+        basename= os.path.basename(root.filename)
         with open(address_of_last_dir_savefile,'wb') as dir_save_file:
             pickle.dump(directory, dir_save_file)
         initdir=directory
@@ -183,7 +199,7 @@ def do_set_rotate(self,args):
     else :
         rot180=False
 
-def do_plot (self, args):
+def do_plot (self, args): #args активирует режим вывода в файл
     """Открывает окно с графиком и текущими настройками в неблокирующем режиме"""
     global this_array_has_a_plot, plot, graph_title, rot180, freq_step, angle_step, array, scale, grate, filters, filters_number
     if (this_array_has_a_plot):
@@ -251,9 +267,13 @@ def do_plot (self, args):
         new_tick= [find_nearest(angle_array,new_label[i]) for i in range (0, len(new_label))]
         plt.yticks(ticks=new_tick, labels=new_label)
 
-        plt.ion()
-        plt.show()
-        plt.tight_layout()
+        if (args!='no_plot'):
+            plt.ion()
+            plt.show()
+            plt.tight_layout()
+         else :
+            np.savetxt(address_of_save_fig+'/'+basename, array, delimiter=",")
+            
 
 def do_exit (self, args):
     """Выход из работы. Альтернатива CTRL+c затем ENTER"""
