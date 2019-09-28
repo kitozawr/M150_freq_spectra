@@ -60,9 +60,9 @@ def do_processing_all_files_in_a_folder(self,args):
     if (pathname):
         for file in os.listdir("pathname"):
             if file.endswith(".png"):
-                do_image_to_array(self='', file)
+                do_image_to_array('', file)
             elif file.endswith(".dat"):
-                do_data_to_array(self='', file)
+                do_data_to_array('', file)
             do_plot(self='', args='no_plot')
         
 def do_rotate(self, args=1):
