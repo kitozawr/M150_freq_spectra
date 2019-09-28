@@ -284,7 +284,7 @@ def do_plot (self, args): #args активирует режим вывода в 
             plt.ion()
             plt.show()
             plt.tight_layout()
-         else:
+        else:
             np.savetxt(address_of_save_fig+'/'+basename, array, delimiter=",")
             
 
