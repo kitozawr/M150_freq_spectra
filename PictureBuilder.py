@@ -278,7 +278,7 @@ def do_plot (self, args): #args активирует режим вывода в 
         if (freq_from and freq_to):
             x_from=find_nearest(freq_array,freq_from)
             x_to=find_nearest(freq_array,freq_to)
-            plt.xlim(x_from, x_to)
+            plt.ax.set(xlim=(x_from, x_to))
 
         if (args!='no_plot'):
             plt.ion()
