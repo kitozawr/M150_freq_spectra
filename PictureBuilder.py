@@ -265,7 +265,7 @@ def do_plot (self, args): #args активирует режим вывода в 
         plot.set_title(graph_title)
 
         #Изменение меток на осях
-        if (freq_from and freq_to)
+        if (freq_from and freq_to):
             x_from=find_nearest(freq_array,freq_from)
             x_to=find_nearest(freq_array,freq_to)
             print(x_from, " ", x_to)
