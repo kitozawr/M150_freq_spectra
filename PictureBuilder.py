@@ -266,11 +266,9 @@ def do_plot (self, args): #args активирует режим вывода в 
         plot.set_title(graph_title)
 
         #Изменение меток на осях
-        print(freq_from, " ", freq_to)
         if (freq_from and freq_to):
             x_from=find_nearest(freq_array,freq_from)
             x_to=find_nearest(freq_array,freq_to)
-            print(x_from, " ", x_to)
             plt.xlim(x_from, x_to)
         min_freq=freq_step*ceil(freq_array[0]/freq_step)
         max_freq=freq_step*floor(freq_array[-1]/freq_step)
