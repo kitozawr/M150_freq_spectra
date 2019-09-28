@@ -33,6 +33,8 @@ address_of_save_fig= adress_of_home_dir+ 'Saves'
 
 array = np.array([[1,2,3,4], [5,6,7,8], [9,10,11,12]])
 freq_step=50
+freq_from= 0
+freq_to=   0
 angle_step=2
 filters={}
 filters_number=0
@@ -45,6 +47,11 @@ else:
     with open(address_of_last_dir_savefile,'wb') as dir_save_file:
         pickle.dump('/', dir_save_file)
 
+def do_set_freq_limits (self,f_from, f_to):
+    #выбор пределов построения графика set(от [нм],до [нм])
+    freq_from=f_from
+    freq_to=  f_to
+       
 def do_processing_all_files_in_a_folder(self,args):
     """Для всех файлов папки, где в последний раз был открыт файл, идет переконвертация (битые области, фильтры, поворот) сырых данных в готовый массив для дальнейшей обработки"""
     global array
@@ -199,15 +206,15 @@ def do_set_rotate(self,args):
     else :
         rot180=False
 
-def do_plot (self, args): #args активирует режим вывода в файл
+def do_plot (self, args): #args активирует режим вывода в файл, без графика
     """Открывает окно с графиком и текущими настройками в неблокирующем режиме"""
-    global this_array_has_a_plot, plot, graph_title, rot180, freq_step, angle_step, array, scale, grate, filters, filters_number
+    global freq_from, freq_to, this_array_has_a_plot, plot, graph_title, rot180, freq_step, angle_step, array, scale, grate, filters, filters_number
+    #Блокировка перепостроения графика
     if (this_array_has_a_plot):
         print ("You have already made plot for this file. Please open another file (or the same again) and call plot(). Duplicate is prohibited")
-
     else :
         this_array_has_a_plot= True
-        #Подготовка массива
+        #Подготовка массива к применению фильтров
         (bd_mult, bd_single)= read_bd_map(address_of_bd_map)
         apply_bd_map(array, bd_mult, bd_single)
         if (rot180):
@@ -266,6 +273,10 @@ def do_plot (self, args): #args активирует режим вывода в 
         new_label=range(min_angle,max_angle+angle_step,angle_step)
         new_tick= [find_nearest(angle_array,new_label[i]) for i in range (0, len(new_label))]
         plt.yticks(ticks=new_tick, labels=new_label)
+        if (freq_from and freq_to):
+            x_from=find_nearest(freq_array,freq_from)
+            x_to=find_nearest(freq_array,freq_to)
+            plt.xlim(x_from, x_to)
 
         if (args!='no_plot'):
             plt.ion()
