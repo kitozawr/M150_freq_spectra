@@ -265,6 +265,10 @@ def do_plot (self, args): #args активирует режим вывода в 
         plot.set_title(graph_title)
 
         #Изменение меток на осях
+        if (freq_from and freq_to):
+            x_from=find_nearest(freq_array,freq_from)
+            x_to=find_nearest(freq_array,freq_to)
+            plt.xlim(x_from, x_to)
         min_freq=freq_step*ceil(freq_array[0]/freq_step)
         max_freq=freq_step*floor(freq_array[-1]/freq_step)
         new_label=range(min_freq,max_freq+freq_step,freq_step)
@@ -275,11 +279,7 @@ def do_plot (self, args): #args активирует режим вывода в 
         new_label=range(min_angle,max_angle+angle_step,angle_step)
         new_tick= [find_nearest(angle_array,new_label[i]) for i in range (0, len(new_label))]
         plt.yticks(ticks=new_tick, labels=new_label)
-        if (freq_from and freq_to):
-            x_from=find_nearest(freq_array,freq_from)
-            x_to=find_nearest(freq_array,freq_to)
-            sns.plt.xlim(x_from, x_to)
-
+        
         if (args!='no_plot'):
             plt.ion()
             plt.show()
