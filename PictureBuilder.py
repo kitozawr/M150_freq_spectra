@@ -50,10 +50,9 @@ else:
 
 def do_set_freq_limits (self,f):
     #выбор пределов построения графика set(от [нм],до [нм])
-    print (f)
-    freq_from=f[0]
+    freq_from=f.split()[0]
     print (freq_from)
-    freq_to=  f[1]
+    freq_to=  f.split()[1]
     print (freq_to)
        
 def do_processing_all_files_in_a_folder(self,args):
