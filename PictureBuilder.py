@@ -280,7 +280,6 @@ def do_plot (self, args): #args активирует режим вывода в 
             x_from=find_nearest(freq_array,freq_from)
             x_to=find_nearest(freq_array,freq_to)
             plt.xlim(x_from, x_to)
-            print(x_from, " ", x_to)
         
         if (args!='no_plot'):
             plt.ion()
