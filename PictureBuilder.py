@@ -251,9 +251,9 @@ def do_plot (self, args):
         new_tick= [find_nearest(angle_array,new_label[i]) for i in range (0, len(new_label))]
         plt.yticks(ticks=new_tick, labels=new_label)
 
-        plt.tight_layout()
         plt.ion()
         plt.show()
+        plt.tight_layout()
 
 def do_exit (self, args):
     """Выход из работы. Альтернатива CTRL+c затем ENTER"""
