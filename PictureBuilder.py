@@ -42,7 +42,7 @@ else:
         pickle.dump('/', dir_save_file)
 
 def do_rotate(self, args=1):
-    """Вращает на 90 градусов против часовой n раз"""
+    """Вращает на 90 градусов против часовой n раз. Количество поворотов обязательно"""
     global array
     array=np.rot90(array, k=int(args))
 
@@ -180,6 +180,8 @@ def do_set_rotate(self,args):
     global rot180
     if (args):
         rot180=True
+    else :
+        rot180=False
 
 def do_plot (self, args):
     """Открывает окно с графиком и текущими настройками в неблокирующем режиме"""
