@@ -295,7 +295,7 @@ def do_plot (self, args): #args активирует режим вывода в 
             plt.show()
             plt.tight_layout()
         else:
-            scipy.misc.imsave(address_of_save_fig+'/'+basename.replace('dat','png'), array)
+            scipy.misc.imsave(address_of_save_fig+'/'+basename.replace('dat','png'), array[900:900+250,775:775+25])
 
 
 def do_exit (self, args):
