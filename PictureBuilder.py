@@ -266,36 +266,36 @@ def do_plot (self, args): #args активирует режим вывода в 
         if (scale=='log'):
             array= np.log(array)
 
-        plot = sns.heatmap(array, cmap="nipy_spectral", cbar_kws={'label':'Относительная интенсивность'})
-        plot.set_ylabel('Угол, мрад')
-        plot.set_xlabel('Длина волны, нм')
-        plot.set_title(graph_title)
-
-        #Изменение меток на осях
-        min_freq=freq_step*ceil(freq_array[0]/freq_step)
-        max_freq=freq_step*floor(freq_array[-1]/freq_step)
-        new_label=range(min_freq,max_freq+freq_step,freq_step)
-        new_tick= [find_nearest(freq_array,new_label[i]) for i in range (0, len(new_label))]
-        plt.xticks(ticks=new_tick, labels=new_label, rotation=0)
-        min_angle=angle_step*ceil(angle_array[-1]/angle_step)
-        max_angle=angle_step*floor(angle_array[0]/angle_step)
-        new_label=range(min_angle,max_angle+angle_step,angle_step)
-        new_tick= [find_nearest(angle_array,new_label[i]) for i in range (0, len(new_label))]
-        plt.yticks(ticks=new_tick, labels=new_label)
-        if (freq_from and freq_to):
-            x_from=find_nearest(freq_array,freq_from)
-            x_to=find_nearest(freq_array,freq_to)
-            plt.xlim(x_from, x_to)
 
         #Вывод в файл при необходимости
         if (args!='no_plot'):
+            plot = sns.heatmap(array, cmap="nipy_spectral", cbar_kws={'label':'Относительная интенсивность'})
+            plot.set_ylabel('Угол, мрад')
+            plot.set_xlabel('Длина волны, нм')
+            plot.set_title(graph_title)
+
+            #Изменение меток на осях
+            min_freq=freq_step*ceil(freq_array[0]/freq_step)
+            max_freq=freq_step*floor(freq_array[-1]/freq_step)
+            new_label=range(min_freq,max_freq+freq_step,freq_step)
+            new_tick= [find_nearest(freq_array,new_label[i]) for i in range (0, len(new_label))]
+            plt.xticks(ticks=new_tick, labels=new_label, rotation=0)
+            min_angle=angle_step*ceil(angle_array[-1]/angle_step)
+            max_angle=angle_step*floor(angle_array[0]/angle_step)
+            new_label=range(min_angle,max_angle+angle_step,angle_step)
+            new_tick= [find_nearest(angle_array,new_label[i]) for i in range (0, len(new_label))]
+            plt.yticks(ticks=new_tick, labels=new_label)
+            if (freq_from and freq_to):
+                x_from=find_nearest(freq_array,freq_from)
+                x_to=find_nearest(freq_array,freq_to)
+                plt.xlim(x_from, x_to)
+
+
             plt.ion()
             plt.show()
             plt.tight_layout()
         else:
-            f= open(, 'w')
             scipy.misc.imsave(address_of_save_fig+'/'+basename.replace('dat','png'), array)
-            f.close()
 
 
 def do_exit (self, args):
