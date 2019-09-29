@@ -58,10 +58,11 @@ def do_processing_all_files_in_a_folder(self,args):
     """Для всех файлов папки, где в последний раз был открыт файл, идет переконвертация
     (битые области, фильтры, поворот) сырых данных в готовый массив для дальнейшей обработки.
     При выставлении парамметра png работает с картинками (по умолчанию dat)"""
-    global array, filename
+    global array, filename,basename
     pathname=os.path.dirname(filename)
     if (pathname):
         for file in os.listdir(pathname):
+            basename= file
             if (args=="png"):
                 if file.endswith(".png"):
                     do_image_to_array('', pathname+"/"+file)
@@ -292,7 +293,7 @@ def do_plot (self, args): #args активирует режим вывода в 
             plt.tight_layout()
         else:
             f= open(address_of_save_fig+'/'+basename, 'w')
-            np.savetxt(f, array, delimiter=",")
+            np.savetxt(f, array, delimiter="," , fmt='%1.4f')
             f.close()
 
 
