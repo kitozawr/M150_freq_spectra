@@ -294,7 +294,10 @@ def do_plot (self, args): #args активирует режим вывода в 
             plt.show()
             plt.tight_layout()
         else:
-            plt.imsave(address_of_save_fig+'/'+basename.replace('dat','png'), array, cmap="gray")
+            subarray=array[900:900+250,775:775+25]
+            mean_subarray= subarray.mean(axis=0)
+            print (basename, mean_subarray.max(), mean_subarray.argmax())
+            plt.imsave(address_of_save_fig+'/'+basename.replace('dat','png'),  array, cmap="gray")
 
 
 def do_exit (self, args):
