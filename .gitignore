@@ -34,3 +34,4 @@ Saves/test_sub_name_GigE10bit_8__18_07_2018__16_03_24,963.dat
 Saves/test_sub_name_GigE10bit_9__18_07_2018__16_03_25,063.dat
 spectrograph_filters.pkl
 spectrograph_last_dir.pkl
+*.png
