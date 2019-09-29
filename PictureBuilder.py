@@ -2,6 +2,7 @@ from tkinter import *
 from tkinter import filedialog
 from math import floor, ceil
 from scipy import interpolate
+import scipy.misc
 import sys
 import os
 import pickle
@@ -292,8 +293,8 @@ def do_plot (self, args): #args активирует режим вывода в 
             plt.show()
             plt.tight_layout()
         else:
-            f= open(address_of_save_fig+'/'+basename, 'w')
-            np.savetxt(f, array, delimiter="," , fmt='%1.4f')
+            f= open(, 'w')
+            scipy.misc.imsave(address_of_save_fig+'/'+basename.replace('dat','png'), array)
             f.close()
 
 
