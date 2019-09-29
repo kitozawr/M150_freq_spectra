@@ -64,10 +64,11 @@ def do_processing_all_files_in_a_folder(self,args):
         for file in os.listdir(pathname):
             if (args=="png"):
                 if file.endswith(".png"):
-                    do_image_to_array('', file)
+                    do_image_to_array('', pathname+"/"+file)
+                    do_plot(self='', args='no_plot')
             elif file.endswith(".dat"):
-                do_data_to_array('', file)
-            do_plot(self='', args='no_plot')
+                do_data_to_array('', pathname+"/"+file)
+                do_plot(self='', args='no_plot')
 
 def do_rotate(self, args=1):
     """Вращает на 90 градусов против часовой n раз. Количество поворотов обязательно"""
