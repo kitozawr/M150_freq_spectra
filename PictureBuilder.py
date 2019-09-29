@@ -53,19 +53,22 @@ def do_set_freq_limits (self,f):
     global freq_from, freq_to
     freq_from= int (f.split()[0])
     freq_to=   int (f.split()[1])
-       
+
 def do_processing_all_files_in_a_folder(self,args):
-    """Для всех файлов папки, где в последний раз был открыт файл, идет переконвертация (битые области, фильтры, поворот) сырых данных в готовый массив для дальнейшей обработки"""
+    """Для всех файлов папки, где в последний раз был открыт файл, идет переконвертация
+    (битые области, фильтры, поворот) сырых данных в готовый массив для дальнейшей обработки.
+    При выставлении парамметра png работает с картинками (по умолчанию dat)"""
     global array, filename
     pathname=os.path.dirname(filename)
     if (pathname):
-        for file in os.listdir("pathname"):
-            if file.endswith(".png"):
-                do_image_to_array('', file)
+        for file in os.listdir(pathname):
+            if (args=="png"):
+                if file.endswith(".png"):
+                    do_image_to_array('', file)
             elif file.endswith(".dat"):
                 do_data_to_array('', file)
             do_plot(self='', args='no_plot')
-        
+
 def do_rotate(self, args=1):
     """Вращает на 90 градусов против часовой n раз. Количество поворотов обязательно"""
     global array
@@ -280,14 +283,14 @@ def do_plot (self, args): #args активирует режим вывода в 
             x_from=find_nearest(freq_array,freq_from)
             x_to=find_nearest(freq_array,freq_to)
             plt.xlim(x_from, x_to)
-        
+
         if (args!='no_plot'):
             plt.ion()
             plt.show()
             plt.tight_layout()
         else:
             np.savetxt(address_of_save_fig+'/'+basename, array, delimiter=",")
-            
+
 
 def do_exit (self, args):
     """Выход из работы. Альтернатива CTRL+c затем ENTER"""
