@@ -12,7 +12,7 @@ def read_bd_map(bd_map_file):
 	f=open(bd_map_file)
 	lines = f.readlines()
 	#print("Reading breakdown map...")
-	if lines[0] == "Muliple hot spots\n":
+	#if lines[0] == "Muliple hot spots\n":
 		#print("File start is OK.")
 	single_start_num = lines.index("Separate hot spots\n")
 	bd_mult = np.genfromtxt(bd_map_file, skip_header=1, max_rows=single_start_num-1, dtype = 'uint16')
