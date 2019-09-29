@@ -167,7 +167,7 @@ def do_data_to_array(self, name_of_file):
     array= np.fromfile(name_of_file, dtype='>i2')
     array= np.reshape(array[4:], (array[1],array[3]))
 
-def get_freq():
+def get_freq(rounded=1):
     """Функция uз старых файлов Origin"""
     global array
     global grate, array, freq
@@ -181,7 +181,10 @@ def get_freq():
     else:
         print("Wrong grate")
         return None
-    freq_array=[round((i-1-image_size+offset)*dispersion+freq) for i in range(1,image_size+1)]
+    if (rounded):
+        freq_array=[round((i-1-image_size+offset)*dispersion+freq) for i in range(1,image_size+1)]
+    else:
+        freq_array=[((i-1-image_size+offset)*dispersion+freq) for i in range(1,image_size+1)]
     return freq_array
 
 def get_angles():
@@ -294,9 +297,14 @@ def do_plot (self, args): #args активирует режим вывода в 
             plt.show()
             plt.tight_layout()
         else:
-            subarray=array[900:900+250,775:775+25]
+            x_corner=900
+            y_corner=775
+            x_width= 250
+            y_height= 25
+            freq_array=get_freq(rounded=0)
+            subarray=array[x_corner:x_corner+x_width,y_corner:y_corner+y_height]
             mean_subarray= subarray.mean(axis=0)
-            print (basename, mean_subarray.max(), mean_subarray.argmax())
+            print (basename, mean_subarray.max(), freq_array[mean_subarray.argmax()+x_corner])
             plt.imsave(address_of_save_fig+'/'+basename.replace('dat','png'),  array, cmap="gray")
 
 
