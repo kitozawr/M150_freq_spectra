@@ -285,12 +285,15 @@ def do_plot (self, args): #args активирует режим вывода в 
             x_to=find_nearest(freq_array,freq_to)
             plt.xlim(x_from, x_to)
 
+        #Вывод в файл при необходимости
         if (args!='no_plot'):
             plt.ion()
             plt.show()
             plt.tight_layout()
         else:
-            np.savetxt(address_of_save_fig+'/'+basename, array, delimiter=",")
+            f= open(address_of_save_fig+'/'+basename, 'w')
+            np.savetxt(f, array, delimiter=",")
+            f.close()
 
 
 def do_exit (self, args):
