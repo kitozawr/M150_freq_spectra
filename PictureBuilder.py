@@ -178,6 +178,9 @@ def get_freq(rounded=1):
     elif (grate==600):
         offset=1011
         dispersion=0.05918
+    elif (grate==900):
+        offset=1018
+        dispersion=0.03656	
     else:
         print("Wrong grate")
         return None
