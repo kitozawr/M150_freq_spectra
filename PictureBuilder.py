@@ -297,15 +297,23 @@ def do_plot (self, args): #args активирует режим вывода в 
             plt.show()
             plt.tight_layout()
         else:
-            x_corner=900
-            y_corner=775
-            x_width= 250
-            y_height= 25
+            #x_corner=900
+            #y_corner=775
+            #x_width= 250
+            #y_height= 25
+            x_corner=0
+            y_corner=1200-790
+            x_width= 1920
+            y_height= 5
             freq_array=get_freq(rounded=0)
-            subarray=array[x_corner:x_corner+x_width,y_corner:y_corner+y_height]
+            subarray=array[y_corner:y_corner+y_height,x_corner:x_corner+x_width]
             mean_subarray= subarray.mean(axis=0)
-            print (basename, mean_subarray.max(), freq_array[mean_subarray.argmax()+x_corner])
-            plt.imsave(address_of_save_fig+'/'+basename.replace('dat','png'),  array, cmap="gray")
+            print (basename[:basename.find("_")], mean_subarray.max(), freq_array[mean_subarray.argmax()+x_corner])
+            #plt.imsave(address_of_save_fig+'/'+basename.replace('dat','jpg'),  subarray)
+            #plt.imsave(address_of_save_fig+'/'+basename.replace('dat','png'),  array, cmap="gray")
+            f= open(address_of_save_fig+'/'+basename.replace('dat','txt'), "a")
+            np.savetxt(f, mean_subarray, fmt='%1.4f')
+            f.close()
 
 
 def do_exit (self, args):
