@@ -2,36 +2,42 @@ from tkinter import *
 from tkinter import filedialog
 from math import floor, ceil
 from scipy import interpolate
+from PictureBuilder.remove_bd import *
+from PictureBuilder.processing.py import *
 import sys
 import os
 import pickle
 import matplotlib.pylab as plt
 import seaborn as sns; sns.set()
 import numpy as np
-from PictureBuilder.remove_bd import *
 
 
+#Цвета для вывода в терминал
 REDCOLOR = '\033[1;31;40m'
 GREENCOLOR = '\033[0;32;47m'
 PINKCOLOR= '\033[1;35;40m'
 NORMALCOLOR =  '\033[0m'
 
+#Базовые параметры разметки спектра
 freq=None
 grate=None
 rot180=None
 scale=None
 graph_title=None
 path=None
-basename=None
-filename=None
 
+#Изменение при открытии нового файла (do_processing_all_files_in_a_folder, do_ask_open_file)
+global_basename=None
+global_filename=None
+
+#Адреса папок
 adress_of_home_dir='/home/student/Desktop/PictureBuilder/'
-
 address_of_last_dir_savefile= adress_of_home_dir+'spectrograph_last_dir.pkl'
 address_of_filters= adress_of_home_dir+'Filters'
 address_of_bd_map= adress_of_home_dir+'bd_map.txt'
 address_of_save_fig= adress_of_home_dir+ 'Saves'
 
+#Параметры внешнего вида спектра
 array = np.array([[1,2,3,4], [5,6,7,8], [9,10,11,12]])
 freq_step=50
 freq_from= 0
@@ -57,19 +63,21 @@ def do_set_freq_limits (self,f):
 def do_processing_all_files_in_a_folder(self,args):
     """Для всех файлов папки, где в последний раз был открыт файл, идет переконвертация
     (битые области, фильтры, поворот) сырых данных в готовый массив для дальнейшей обработки.
-    При выставлении парамметра png работает с картинками (по умолчанию dat)"""
-    global array, filename,basename
-    pathname=os.path.dirname(filename)
+    Работает с последним открытым типом файлов"""
+    global array, global_filename,global_basename
+    pathname=os.path.dirname(global_filename)
+    filename_extension = os.path.splitext(global_filename)[-1]
     if (pathname):
         for file in os.listdir(pathname):
-            basename= file
-            if (args=="png"):
-                if file.endswith(".png"):
-                    do_image_to_array('', pathname+"/"+file)
-                    do_plot(self='', args='no_plot')
-            elif file.endswith(".dat"):
+            global_basename= file
+            if filename_extension == ".png":
+                do_image_to_array('', pathname+"/"+file)
+                preprocessing_plot()
+                processing_plot()
+            elif filename_extension == ".dat":
                 do_data_to_array('', pathname+"/"+file)
-                do_plot(self='', args='no_plot')
+                preprocessing_plot()
+                processing_plot()
 
 def do_rotate(self, args=1):
     """Вращает на 90 градусов против часовой n раз. Количество поворотов обязательно"""
@@ -136,14 +144,14 @@ def do_ask_save_file(self, args):
 
 def do_ask_open_file(self, args):
     """Открытие GUI окна выбора файла для открытия"""
-    global initdir, basename, filename
+    global initdir, global_basename, global_filename
     root = Tk()
     root.withdraw()
     root.filename =  filedialog.askopenfilename(initialdir = initdir,title = "Select file",filetypes=(("Data files only", "*.dat"),("PNG files only","*.png"),("All files","*.*")))
     if  (root.filename):
         filename_extension = os.path.splitext(root.filename)[-1]
         directory= os.path.dirname(root.filename)
-        basename= os.path.basename(root.filename)
+        global_basename= os.path.basename(root.filename)
         with open(address_of_last_dir_savefile,'wb') as dir_save_file:
             pickle.dump(directory, dir_save_file)
         initdir=directory
@@ -151,9 +159,9 @@ def do_ask_open_file(self, args):
             do_image_to_array(self='', name_of_file=root.filename)
         elif filename_extension == ".dat":
             do_data_to_array(self='', name_of_file=root.filename)
-        filename = root.filename
-        basepathname =os.path.basename(os.path.dirname(filename))
-        do_set_parameters(self='',pathname=os.path.dirname(filename), dirname=basepathname)
+        global_filename = root.filename
+        basepathname =os.path.basename(os.path.dirname(root.filename))
+        do_set_parameters(self='',pathname=os.path.dirname(root.filename), dirname=basepathname)
     root.destroy()
 
 def do_image_to_array(self, name_of_file):
@@ -180,7 +188,7 @@ def get_freq(rounded=1):
         dispersion=0.05918
     elif (grate==900):
         offset=1018
-        dispersion=0.03656	
+        dispersion=0.03656
     else:
         print("Wrong grate")
         return None
@@ -220,8 +228,7 @@ def do_set_rotate(self,args):
     else :
         rot180=False
 
-def do_plot (self, args): #args активирует режим вывода в файл, без графика
-    """Открывает окно с графиком и текущими настройками в неблокирующем режиме"""
+def preprocessing_plot()
     global freq_from, freq_to, this_array_has_a_plot, plot, graph_title, rot180, freq_step, angle_step, array, scale, grate, filters, filters_number
     #Блокировка перепостроения графика
     if (this_array_has_a_plot):
@@ -271,53 +278,36 @@ def do_plot (self, args): #args активирует режим вывода в 
         if (scale=='log'):
             array= np.log(array)
 
+def show_plot():
+    global freq_from, freq_to, this_array_has_a_plot, plot, graph_title, rot180, freq_step, angle_step, array, scale, grate, filters, filters_number
+    plot = sns.heatmap(array, cmap="nipy_spectral", cbar_kws={'label':'Относительная интенсивность'})
+    plot.set_ylabel('Угол, мрад')
+    plot.set_xlabel('Длина волны, нм')
+    plot.set_title(graph_title)
 
-        #Вывод в файл при необходимости
-        if (args!='no_plot'):
-            plot = sns.heatmap(array, cmap="nipy_spectral", cbar_kws={'label':'Относительная интенсивность'})
-            plot.set_ylabel('Угол, мрад')
-            plot.set_xlabel('Длина волны, нм')
-            plot.set_title(graph_title)
+    #Изменение меток на осях
+    min_freq=freq_step*ceil(freq_array[0]/freq_step)
+    max_freq=freq_step*floor(freq_array[-1]/freq_step)
+    new_label=range(min_freq,max_freq+freq_step,freq_step)
+    new_tick= [find_nearest(freq_array,new_label[i]) for i in range (0, len(new_label))]
+    plt.xticks(ticks=new_tick, labels=new_label, rotation=0)
+    min_angle=angle_step*ceil(angle_array[-1]/angle_step)
+    max_angle=angle_step*floor(angle_array[0]/angle_step)
+    new_label=range(min_angle,max_angle+angle_step,angle_step)
+    new_tick= [find_nearest(angle_array,new_label[i]) for i in range (0, len(new_label))]
+    plt.yticks(ticks=new_tick, labels=new_label)
+    if (freq_from and freq_to):
+        x_from=find_nearest(freq_array,freq_from)
+        x_to=find_nearest(freq_array,freq_to)
+        plt.xlim(x_from, x_to)
+    plt.ion()
+    plt.show()
+    plt.tight_layout()
 
-            #Изменение меток на осях
-            min_freq=freq_step*ceil(freq_array[0]/freq_step)
-            max_freq=freq_step*floor(freq_array[-1]/freq_step)
-            new_label=range(min_freq,max_freq+freq_step,freq_step)
-            new_tick= [find_nearest(freq_array,new_label[i]) for i in range (0, len(new_label))]
-            plt.xticks(ticks=new_tick, labels=new_label, rotation=0)
-            min_angle=angle_step*ceil(angle_array[-1]/angle_step)
-            max_angle=angle_step*floor(angle_array[0]/angle_step)
-            new_label=range(min_angle,max_angle+angle_step,angle_step)
-            new_tick= [find_nearest(angle_array,new_label[i]) for i in range (0, len(new_label))]
-            plt.yticks(ticks=new_tick, labels=new_label)
-            if (freq_from and freq_to):
-                x_from=find_nearest(freq_array,freq_from)
-                x_to=find_nearest(freq_array,freq_to)
-                plt.xlim(x_from, x_to)
-
-
-            plt.ion()
-            plt.show()
-            plt.tight_layout()
-        else:
-            #x_corner=900
-            #y_corner=775
-            #x_width= 250
-            #y_height= 25
-            x_corner=0
-            y_corner=1200-790
-            x_width= 1920
-            y_height= 5
-            freq_array=get_freq(rounded=0)
-            subarray=array[y_corner:y_corner+y_height,x_corner:x_corner+x_width]
-            mean_subarray= subarray.mean(axis=0)
-            print (basename[:basename.find("_")], mean_subarray.max(), freq_array[mean_subarray.argmax()+x_corner])
-            #plt.imsave(address_of_save_fig+'/'+basename.replace('dat','jpg'),  subarray)
-            #plt.imsave(address_of_save_fig+'/'+basename.replace('dat','png'),  array, cmap="gray")
-            f= open(address_of_save_fig+'/'+basename.replace('dat','txt'), "a")
-            np.savetxt(f, mean_subarray, fmt='%1.4f')
-            f.close()
-
+def do_plot (self, args):
+    """Открывает окно с графиком и текущими настройками в неблокирующем режиме"""
+    preprocessing_plot()
+    show_plot()
 
 def do_exit (self, args):
     """Выход из работы. Альтернатива CTRL+c затем ENTER"""
