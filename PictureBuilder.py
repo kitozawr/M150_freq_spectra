@@ -3,7 +3,7 @@ from tkinter import filedialog
 from math import floor, ceil
 from scipy import interpolate
 from PictureBuilder.remove_bd import *
-from PictureBuilder.processing.py import *
+from PictureBuilder.processing import *
 import sys
 import os
 import pickle
@@ -70,14 +70,15 @@ def do_processing_all_files_in_a_folder(self,args):
     if (pathname):
         for file in os.listdir(pathname):
             global_basename= file
-            if filename_extension == ".png":
-                do_image_to_array('', pathname+"/"+file)
-                preprocessing_plot()
-                processing_plot()
-            elif filename_extension == ".dat":
-                do_data_to_array('', pathname+"/"+file)
-                preprocessing_plot()
-                processing_plot()
+            if file.endswith(filename_extension):
+                if file.endswith(".png"):
+                    do_image_to_array('', pathname+"/"+file)
+                    preprocessing_plot()
+                    processing_plot()
+                elif file.endswith(".dat"):
+                    do_data_to_array('', pathname+"/"+file)
+                    preprocessing_plot()
+                    processing_plot()
 
 def do_rotate(self, args=1):
     """Вращает на 90 градусов против часовой n раз. Количество поворотов обязательно"""
@@ -228,7 +229,7 @@ def do_set_rotate(self,args):
     else :
         rot180=False
 
-def preprocessing_plot()
+def preprocessing_plot():
     global freq_from, freq_to, this_array_has_a_plot, plot, graph_title, rot180, freq_step, angle_step, array, scale, grate, filters, filters_number
     #Блокировка перепостроения графика
     if (this_array_has_a_plot):
@@ -245,8 +246,8 @@ def preprocessing_plot()
         else:
             array-=array[1,1] #вычитание из импортированных dat
         array[array<0] = 0
-        freq_array=get_freq()
         angle_array=get_angles()
+        freq_array=get_freq()
 
         #Применение фильтров
         image_size=array.shape[1]
@@ -284,6 +285,8 @@ def show_plot():
     plot.set_ylabel('Угол, мрад')
     plot.set_xlabel('Длина волны, нм')
     plot.set_title(graph_title)
+    angle_array=get_angles()
+    freq_array=get_freq()
 
     #Изменение меток на осях
     min_freq=freq_step*ceil(freq_array[0]/freq_step)
@@ -306,6 +309,8 @@ def show_plot():
 
 def do_plot (self, args):
     """Открывает окно с графиком и текущими настройками в неблокирующем режиме"""
+    freq_array=get_freq()
+    angle_array=get_angles()
     preprocessing_plot()
     show_plot()
 
