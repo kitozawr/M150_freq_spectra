@@ -26,7 +26,7 @@ scale=None
 graph_title=None
 path=None
 
-#Изменение при открытии нового файла (do_processing_all_files_in_a_folder, do_ask_open_file)
+#Принимают значения при открытии нового файла (созданы для ввода в do_processing_all_files_in_a_folder из do_ask_open_file)
 global_basename=None
 global_filename=None
 
@@ -143,16 +143,20 @@ def do_ask_save_file(self, args):
     file_name= root.filename
     plt.savefig(file_name)
 
-def do_ask_open_file(self, args):
+def do_ask_open_file(self, reopen_without_asking_anything=False):
     """Открытие GUI окна выбора файла для открытия"""
     global initdir, global_basename, global_filename
     root = Tk()
     root.withdraw()
-    root.filename =  filedialog.askopenfilename(initialdir = initdir,title = "Select file",filetypes=(("Data files only", "*.dat"),("PNG files only","*.png"),("All files","*.*")))
+    if (reopen_without_asking_anything):
+        root.filename = global_filename
+    else:
+        root.filename =  filedialog.askopenfilename(initialdir = initdir,title = "Select file",filetypes=(("Data files only", "*.dat"),("PNG files only","*.png"),("All files","*.*")))
     if  (root.filename):
+        global_filename = root.filename
+        global_basename= os.path.basename(root.filename)
         filename_extension = os.path.splitext(root.filename)[-1]
         directory= os.path.dirname(root.filename)
-        global_basename= os.path.basename(root.filename)
         with open(address_of_last_dir_savefile,'wb') as dir_save_file:
             pickle.dump(directory, dir_save_file)
         initdir=directory
@@ -160,7 +164,6 @@ def do_ask_open_file(self, args):
             do_image_to_array(self='', name_of_file=root.filename)
         elif filename_extension == ".dat":
             do_data_to_array(self='', name_of_file=root.filename)
-        global_filename = root.filename
         basepathname =os.path.basename(os.path.dirname(root.filename))
         do_set_parameters(self='',pathname=os.path.dirname(root.filename), dirname=basepathname)
     root.destroy()
@@ -231,53 +234,54 @@ def do_set_rotate(self,args):
 
 def preprocessing_plot():
     global freq_from, freq_to, this_array_has_a_plot, plot, graph_title, rot180, freq_step, angle_step, array, scale, grate, filters, filters_number
-    #Блокировка перепостроения графика
+
     if (this_array_has_a_plot):
-        print ("You have already made plot for this file. Please open another file (or the same again) and call plot(). Duplicate is prohibited")
-    else :
-        this_array_has_a_plot= True
-        #Подготовка массива к применению фильтров
-        (bd_mult, bd_single)= read_bd_map(address_of_bd_map)
-        apply_bd_map(array, bd_mult, bd_single)
-        if (rot180):
-            do_rotate(self='', args=2)
-        if (array[1,1]<=1):
-            array-=array[1,1] #вычитание фона из изображений
-        else:
-            array-=array[1,1] #вычитание из импортированных dat
-        array[array<0] = 0
-        angle_array=get_angles()
-        freq_array=get_freq()
+        do_ask_open_file(self='', reopen_without_asking_anything=True)
+    this_array_has_a_plot= True
 
-        #Применение фильтров
-        image_size=array.shape[1]
-        array_factor= np.ones(image_size)
-        do_list_add_filter("", name_of_file="Camera")
-        if   (grate==300):
-            do_list_add_filter("", name_of_file="300")
-        elif (grate==600):
-            do_list_add_filter("", name_of_file="600")
-        elif (grate==900):
-            do_list_add_filter("", name_of_file="900")
+    #Подготовка массива к применению фильтров
+    (bd_mult, bd_single)= read_bd_map(address_of_bd_map)
+    apply_bd_map(array, bd_mult, bd_single)
+    if (rot180):
+        do_rotate(self='', args=2)
+    if (array[1,1]<=1):
+        array-=array[1,1] #вычитание фона из изображений
+    else:
+        array-=array[1,1] #вычитание из импортированных dat
+    array[array<0] = 0
+    angle_array=get_angles()
+    freq_array=get_freq()
 
-        for key, value in filters.items():
-            filter_array=np.loadtxt(address_of_filters+'/'+value+'.txt')
-            x=(filter_array[:,0]).transpose()
-            y=(filter_array[:,1]).transpose()
-            filter_function= interpolate.interp1d(x,y, fill_value="extrapolate")
-            filter_vector_function= np.vectorize(filter_function)
-            array_factor*=filter_vector_function(freq_array)
-        do_list_rem_filter('', len(filters))
-        do_list_rem_filter('', len(filters))
-        filters_number= filters_number-2
-        array_factor_reciprocal=np.reciprocal(array_factor)
-        array_factor_rec_diag=np.diag(array_factor_reciprocal)
-        array= array @ array_factor_rec_diag
+    #Применение фильтров
+    image_size=array.shape[1]
+    array_factor= np.ones(image_size)
+    do_list_add_filter("", name_of_file="Camera")
+    if   (grate==300):
+        do_list_add_filter("", name_of_file="300")
+    elif (grate==600):
+        do_list_add_filter("", name_of_file="600")
+    elif (grate==900):
+        do_list_add_filter("", name_of_file="900")
 
-        MAX=array.max()
-        array *= 1.0/MAX
-        if (scale=='log'):
-            array= np.log(array)
+    for key, value in filters.items():
+        filter_array=np.loadtxt(address_of_filters+'/'+value+'.txt')
+        x=(filter_array[:,0]).transpose()
+        y=(filter_array[:,1]).transpose()
+        filter_function= interpolate.interp1d(x,y, fill_value="extrapolate")
+        filter_vector_function= np.vectorize(filter_function)
+        array_factor*=filter_vector_function(freq_array)
+    do_list_rem_filter('', len(filters))
+    do_list_rem_filter('', len(filters))
+    filters_number= filters_number-2
+    array_factor_reciprocal=np.reciprocal(array_factor)
+    array_factor_rec_diag=np.diag(array_factor_reciprocal)
+    array= array @ array_factor_rec_diag
+
+    MAX=array.max()
+    array *= 1.0/MAX
+    if (scale=='log'):
+        array= np.log(array)
+
 
 def show_plot():
     global freq_from, freq_to, this_array_has_a_plot, plot, graph_title, rot180, freq_step, angle_step, array, scale, grate, filters, filters_number
