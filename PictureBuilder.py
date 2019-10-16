@@ -222,11 +222,11 @@ def do_set_angle_step(self,args):
     angle_step=int (args)
 
 def do_set_rotate(self,args):
-    """Включение режима поворота на 180"""
+    """Включение режима поворота на 180. ЗАПУСК БЕЗ АРГУМЕНТОВ ВЫСТАВЛЯЕТ ОТСУТСВИЕ ПОВОРОТА (также как и 0 False None)."""
     global rot180
-    if (args):
+    if (args and args!="0" and args!='False' and args!='None'):
         rot180=True
-    else :
+    else:
         rot180=False
 
 def preprocessing_plot():
@@ -356,7 +356,7 @@ def do_save_parameters (self, args):
     with open(path+'spectrograph_parameters.pkl','wb') as dir_save_file:
         pickle.dump(param_turple, dir_save_file)
 
-def do_set_parameters (self, pathname="", frequency=0, grating=0, dirname=False, rotate=False, scaletype=False, title=None):
+def do_set_parameters (self, pathname="", frequency=0, grating=0, dirname=False, rotate=None, scaletype=False, title=None):
     global freq, grate, rot180, scale, graph_title, path, filters, filters_number
     print (PINKCOLOR+"Введенный/"+GREENCOLOR+'сохраненный'+REDCOLOR +"/по умолчанию" + NORMALCOLOR +" параметр:")
 
@@ -392,13 +392,19 @@ def do_set_parameters (self, pathname="", frequency=0, grating=0, dirname=False,
     else:
         grate=300
         print(REDCOLOR+"Grating "+NORMALCOLOR +str(grate))
-    #---begin rot
-    if (rotate):
-        rot180=True
-        print(PINKCOLOR+"Rotate "+NORMALCOLOR +'True')
-    elif (param_turple[2]):
-        rot180=True
-        print(GREENCOLOR+"Rotate "+NORMALCOLOR +'True')
+    #---begin rot (завязан на наличие частоты)
+    if (rotate is not None):
+        rot180=rotate
+        if (rotate):
+            print(PINKCOLOR+"Rotate "+NORMALCOLOR +'True')
+        else:
+            print(PINKCOLOR+"Rotate "+NORMALCOLOR +'False')
+    elif (param_turple[0]):
+        rot180=param_turple[2]
+        if (param_turple[2]):
+            print(GREENCOLOR+"Rotate "+NORMALCOLOR +'True')
+        else:
+            print(GREENCOLOR+"Rotate "+NORMALCOLOR +'False')
     else:
         rot180=True
         print(REDCOLOR+"Rotate "+NORMALCOLOR +'True')
