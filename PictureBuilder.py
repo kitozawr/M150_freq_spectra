@@ -63,7 +63,7 @@ def do_set_freq_limits (self,f):
 def do_processing_all_files_in_a_folder(self,args):
     """Для всех файлов папки, где в последний раз был открыт файл, идет переконвертация
     (битые области, фильтры, поворот) сырых данных в готовый массив для дальнейшей обработки.
-    Работает с последним открытым типом файлов"""
+    Работает с последним открытым типом файлов. Алгоритм обработки описывается в processing.py"""
     global array, global_filename,global_basename
     pathname=os.path.dirname(global_filename)
     filename_extension = os.path.splitext(global_filename)[-1]
@@ -74,11 +74,11 @@ def do_processing_all_files_in_a_folder(self,args):
                 if file.endswith(".png"):
                     do_image_to_array('', pathname+"/"+file)
                     preprocessing_plot()
-                    processing_plot()
+                    do_processing_plot(self='')
                 elif file.endswith(".dat"):
                     do_data_to_array('', pathname+"/"+file)
                     preprocessing_plot()
-                    processing_plot()
+                    do_processing_plot(self='')
 
 def do_rotate(self, args=1):
     """Вращает на 90 градусов против часовой n раз. Количество поворотов обязательно"""

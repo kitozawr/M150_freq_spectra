@@ -1,10 +1,12 @@
 import PictureBuilder.PictureBuilder as PB
 import matplotlib.pylab as plt
-def processing_plot():
-    x_corner=0
-    y_corner=1200-790
-    x_width= 1920
-    y_height= 5
+import matplotlib.patches as patches
+x_corner=0
+y_corner=1200-790
+x_width= 1920
+y_height= 5
+
+def do_processing_plot(self, args):
     freq_array=PB.get_freq(rounded=0)
     subarray=PB.array[y_corner:y_corner+y_height,x_corner:x_corner+x_width]
     mean_subarray= subarray.mean(axis=0)
@@ -14,3 +16,8 @@ def processing_plot():
     f= open(PB.address_of_save_fig+'/'+PB.global_basename.replace('dat','txt'), "a")
     #np.savetxt(f, mean_subarray, fmt='%1.4f')
     f.close()
+
+def draw_rectangle()
+    global x_corner, x_width, y_corner, y_height
+    rect = patches.Rectangle((x_corner,y_corner),x_width,y_height,linewidth=1,edgecolor='r',facecolor='none')
+    PB.plot.add_patch(rect)
