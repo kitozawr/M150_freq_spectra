@@ -74,11 +74,11 @@ def do_processing_all_files_in_a_folder(self,args):
                 if file.endswith(".png"):
                     do_image_to_array('', pathname+"/"+file)
                     preprocessing_plot()
-                    do_processing_plot(self='')
+                    do_processing_plot(self='', mode='default')
                 elif file.endswith(".dat"):
                     do_data_to_array('', pathname+"/"+file)
                     preprocessing_plot()
-                    do_processing_plot(self='')
+                    do_processing_plot(self='', mode='default')
 
 def do_rotate(self, args=1):
     """Вращает на 90 градусов против часовой n раз. Количество поворотов обязательно"""
