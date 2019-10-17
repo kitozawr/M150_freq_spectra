@@ -6,3 +6,9 @@ Saves/
 spectrograph_filters.pkl
 spectrograph_last_dir.pkl
 *.png
+*.jpg
+__pycache__/processing.cpython-37.pyc
+spectrograph_parameters.pkl
+__pycache__/processing.cpython-37.pyc
+__pycache__/processing.cpython-37.pyc
+__pycache__/processing.cpython-37.pyc
