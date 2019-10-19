@@ -29,7 +29,8 @@ def toggle_selector(event):
 
 def do_processing_plot(self, mode):
     def default():
-        print("Fine")
+        set_parameters(X=0, W=1920, Y=375, H=80)
+        finding_local_maxima()
 
     def draw_rectangle():
         global x_corner, x_width, y_corner, y_height
@@ -53,19 +54,22 @@ def do_processing_plot(self, mode):
     def draw_a_rectangle_with_a_mouse():
         toggle_selector.RS = RectangleSelector(PB.plot, onselect, drawtype='line')
 
-    def set_parameters():
+    def set_parameters(X=None, W=None, Y=None, H=None):
         global x_corner, x_width, y_corner, y_height
-        def set_single_par(X, name_of_X):
+        def set_single_par(X, name_of_X, value_of_x=None):
             print (name_of_X, '= ', X)
-            buffer=input()
+            if (value_of_x is None):
+                buffer=input()
+            else:
+                buffer= value_of_x
             if (buffer):
                 X= int(buffer)
             return X
 
-        x_corner= set_single_par(x_corner, 'x_corner')
-        y_corner= set_single_par(y_corner, 'y_corner')
-        x_width= set_single_par(x_width, 'x_width')
-        y_height= set_single_par(y_height, 'y_height')
+        x_corner= set_single_par(x_corner, 'x_corner', X)
+        y_corner= set_single_par(y_corner, 'y_corner', Y)
+        x_width= set_single_par(x_width, 'x_width', W)
+        y_height= set_single_par(y_height, 'y_height', H)
 
     def finding_local_maxima():
         im = PB.array[y_corner:y_corner+y_height,x_corner:x_corner+x_width]
@@ -76,26 +80,34 @@ def do_processing_plot(self, mode):
         # Comparison between image_max and im to find the coordinates of local maxima
         coordinates = peak_local_max(im, min_distance=20)
 
-        # display results
-        fig, axes = plt.subplots(3, 1, sharex=True, sharey=True)
-        ax = axes.ravel()
+        def display_results():
+            nonlocal im, image_max, coordinates
+            fig, axes = plt.subplots(3, 1, sharex=True, sharey=True)
+            ax = axes.ravel()
 
-        ax[0].imshow(im, cmap=plt.cm.gray)
-        ax[0].axis('off')
-        ax[0].set_title('Original')
+            ax[0].imshow(im, cmap=plt.cm.gray)
+            ax[0].axis('off')
+            ax[0].set_title('Original')
 
-        ax[1].imshow(image_max, cmap=plt.cm.gray)
-        ax[1].axis('off')
-        ax[1].set_title('Maximum filter')
+            ax[1].imshow(image_max, cmap=plt.cm.gray)
+            ax[1].axis('off')
+            ax[1].set_title('Maximum filter')
 
-        ax[2].imshow(im, cmap=plt.cm.gray)
-        ax[2].autoscale(False)
-        ax[2].plot(coordinates[:, 1], coordinates[:, 0], 'r.')
-        ax[2].axis('off')
-        ax[2].set_title('Peak local max')
+            ax[2].imshow(im, cmap=plt.cm.gray)
+            ax[2].autoscale(False)
+            ax[2].plot(coordinates[:, 1], coordinates[:, 0], 'r.')
+            ax[2].axis('off')
+            ax[2].set_title('Peak local max')
 
-        fig.tight_layout()
-        plt.show()
+            fig.tight_layout()
+            plt.show()
+
+
+        freq= PB.get_freq(rounded=0)
+        f= open(PB.address_of_save_fig+'/'+PB.global_basename.replace('dat','txt'), "a")
+        np.savetxt(f, [freq[i] for i in (coordinates[:, 1])], fmt='%1.4f')
+        f.close()
+
 
 
     functions = {
