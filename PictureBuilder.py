@@ -244,11 +244,17 @@ def preprocessing_plot():
     apply_bd_map(array, bd_mult, bd_single)
     if (rot180):
         do_rotate(self='', args=2)
-    if (array[1,1]<=1):
-        array-=array[1,1] #вычитание фона из изображений
-    else:
-        array-=array[1,1] #вычитание из импортированных dat
-    array[array<0] = 0
+
+    width_of_background_borders=20
+    border_1= np.mean(array[:width_of_background_borders, :width_of_background_borders])
+    border_2= np.mean(array[-width_of_background_borders:, :width_of_background_borders])
+    border_3= np.mean(array[:width_of_background_borders,-width_of_background_borders:])
+    border_4= np.mean(array[-width_of_background_borders:,-width_of_background_borders:]))
+    sum_of_borders=[border_1, border_2, border_3, border_4]
+    background= np.mean(sum_of_borders)
+    array-=background
+    array[array<0]= 0
+
     angle_array=get_angles()
     freq_array=get_freq()
 
