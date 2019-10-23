@@ -6,6 +6,7 @@ from matplotlib.widgets import RectangleSelector
 from skimage.feature import peak_local_max
 from skimage import data, img_as_float
 from scipy import ndimage as ndi
+import os
 
 x_corner=0
 y_corner=0
@@ -31,9 +32,11 @@ def do_processing_plot(self, mode):
     def default():
         set_parameters(X=0, W=1920, Y=375, H=80)
         finding_local_maxima()
+    def tight_layout():
+        plt.tight_layout()
 
     def draw_rectangle():
-        global x_corner, x_width, y_corner, y_height
+        global x_corner, x_width, y_corners, y_height
         rect = patches.Rectangle((x_corner,y_corner),x_width,y_height,linewidth=1,edgecolor='r',facecolor='none')
         PB.plot.add_patch(rect)
 
@@ -72,13 +75,14 @@ def do_processing_plot(self, mode):
         y_height= set_single_par(y_height, 'y_height', H)
 
     def finding_local_maxima():
+        global x_corner, x_width, y_corner, y_height
         im = PB.array[y_corner:y_corner+y_height,x_corner:x_corner+x_width]
         # image_max is the dilation of im with a 20*20 structuring element
         # It is used within peak_local_max function
-        image_max = ndi.maximum_filter(im, size=20, mode='constant')
+        image_max = ndi.maximum_filter(im, size=30, mode='constant')
 
         # Comparison between image_max and im to find the coordinates of local maxima
-        coordinates = peak_local_max(im, min_distance=20)
+        coordinates = peak_local_max(im, min_distance=30)
 
         def display_results():
             nonlocal im, image_max, coordinates
@@ -102,10 +106,14 @@ def do_processing_plot(self, mode):
             fig.tight_layout()
             plt.show()
 
-
         freq= PB.get_freq(rounded=0)
-        f= open(PB.address_of_save_fig+'/'+PB.global_basename.replace('dat','txt'), "a")
-        np.savetxt(f, [freq[i] for i in (coordinates[:, 1])], fmt='%1.4f')
+        #f= open(PB.address_of_save_fig+'/'+PB.global_basename.replace('dat','txt'), "a")
+        f= open(PB.address_of_save_fig+'/'+os.path.basename(os.path.dirname(PB.global_filename))+".txt", "a")
+        np.savetxt(f, [[freq[i] for i in (coordinates[:, 1]) if freq[i]>800]], fmt='%1.4f')
+        f.close()
+
+        f= open(PB.address_of_save_fig+'/'+os.path.basename(os.path.dirname(PB.global_filename))+"_energy.txt", "a")
+        f.write(PB.global_basename[:PB.global_basename.find("_")]+"\n")
         f.close()
 
 
@@ -116,6 +124,7 @@ def do_processing_plot(self, mode):
                     'set_par': set_parameters,
                     'save_crop': save_cropped_image,
                     'find_max': finding_local_maxima,
+                    'tl': tight_layout,
                     'default': default
                 }
     selected_function = functions.get(mode)

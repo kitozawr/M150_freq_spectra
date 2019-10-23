@@ -280,12 +280,16 @@ def preprocessing_plot():
     MAX=array.max()
     array *= 1.0/MAX
     if (scale=='log'):
+        array[array<=0] = np.exp(-6)
         array= np.log(array)
 
 
 def show_plot():
     global freq_from, freq_to, this_array_has_a_plot, plot, graph_title, rot180, freq_step, angle_step, array, scale, grate, filters, filters_number
-    plot = sns.heatmap(array, cmap="nipy_spectral", cbar_kws={'label':'Относительная интенсивность'})
+    if (scale=='log'):
+        plot = sns.heatmap(array, vmin=-5, vmax=0, cmap="nipy_spectral", cbar_kws={'label':'Относительная интенсивность'})
+    else:
+        plot = sns.heatmap(array, cmap="nipy_spectral", cbar_kws={'label':'Относительная интенсивность'})
     plot.set_ylabel('Угол, мрад')
     plot.set_xlabel('Длина волны, нм')
     plot.set_title(graph_title)
@@ -307,6 +311,8 @@ def show_plot():
         x_from=find_nearest(freq_array,freq_from)
         x_to=find_nearest(freq_array,freq_to)
         plt.xlim(x_from, x_to)
+
+
     plt.ion()
     plt.show()
     plt.tight_layout()
