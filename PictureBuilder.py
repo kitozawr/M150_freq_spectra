@@ -252,7 +252,8 @@ def preprocessing_plot():
     border_4= np.mean(array[-width_of_background_borders:,-width_of_background_borders:])
     sum_of_borders=[border_1, border_2, border_3, border_4]
     background= np.mean(sum_of_borders)
-    if (array[1,1]<=1): #>1 dat -> с округлением в int
+    background*=1.02 #округление было вниз
+    if (array[1,1]>1): #-> dat -> type '>i2'
         background= background.astype('>i2')
     array-=background
     array[array<0]= 0
