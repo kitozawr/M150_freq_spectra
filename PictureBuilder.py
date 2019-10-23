@@ -245,13 +245,16 @@ def preprocessing_plot():
     if (rot180):
         do_rotate(self='', args=2)
 
-    width_of_background_borders=20
-    border_1= np.mean(array[:width_of_background_borders, :width_of_background_borders])
+    width_of_background_borders=10
+    border_1= np.mean(array[:width_of_background_borders, :width_of_background_borders],)
     border_2= np.mean(array[-width_of_background_borders:, :width_of_background_borders])
     border_3= np.mean(array[:width_of_background_borders,-width_of_background_borders:])
-    border_4= np.mean(array[-width_of_background_borders:,-width_of_background_borders:]))
+    border_4= np.mean(array[-width_of_background_borders:,-width_of_background_borders:])
     sum_of_borders=[border_1, border_2, border_3, border_4]
     background= np.mean(sum_of_borders)
+    background*=1.01
+    if (array[1,1]<=1): #>1 dat -> с округлением в int
+        background= background.astype('>i2')
     array-=background
     array[array<0]= 0
 
@@ -286,7 +289,7 @@ def preprocessing_plot():
     MAX=array.max()
     array *= 1.0/MAX
     if (scale=='log'):
-        array[array<=0] = np.exp(-6)
+        array[array<=0] = np.exp(-10)
         array= np.log(array)
 
 
