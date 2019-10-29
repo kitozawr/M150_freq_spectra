@@ -141,7 +141,8 @@ def do_ask_save_file(self, args):
     root.withdraw()
     root.filename = filedialog.asksaveasfilename(filetypes=(("PNG files only","*.png"),("All files","*.*")))
     file_name= root.filename
-    plt.savefig(file_name)
+    plt.tight_layout()
+    plt.savefig(file_name, dpi=600)
 
 def do_ask_open_file(self, reopen_without_asking_anything=False):
     """Открытие GUI окна выбора файла для открытия"""
