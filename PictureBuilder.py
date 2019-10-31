@@ -55,7 +55,7 @@ else:
         pickle.dump('/', dir_save_file)
 
 def do_set_freq_limits (self,f):
-    #выбор пределов построения графика set(от [нм],до [нм])
+    '''выбор пределов построения графика set(от [нм],до [нм]) ввод через пробел'''
     global freq_from, freq_to
     freq_from= int (f.split()[0])
     freq_to=   int (f.split()[1])
@@ -182,39 +182,40 @@ def do_data_to_array(self, name_of_file):
     array= np.fromfile(name_of_file, dtype='>i2')
     array= np.reshape(array[4:], (array[1],array[3]))
 
-def get_freq():
-    """Функция uз старых файлов Origin"""
-    global array
-    global grate, array, freq
-    image_size=array.shape[1]
-    if (grate==300):
-        offset=1001
-        dispersion=0.12505
-    elif (grate==600):
-        offset=1011
-        dispersion=0.05918
-    elif (grate==900):
-        offset=1018
-        dispersion=0.03656
-    else:
-        print("Wrong grate")
+class x_axis_frequency:
+    def __init__(self):
+        """Функция uз старых файлов Origin"""
+        global array
+        global grate, array, freq
+        self.image_size=array.shape[1]
+        if (grate==300):
+            self.offset=1001
+            self.dispersion=0.12505
+        elif (grate==600):
+            self.offset=1011
+            self.dispersion=0.05918
+        elif (grate==900):
+            self.offset=1018
+            self.dispersion=0.03656
+        else:
+            print("Wrong grate")
 
-    freq_array=[get_freq.single(i) for i in range(0,image_size)]
+        self.freq_array=[self.single(i) for i in range(0,self.image_size)]
 
-    def single(i):
-        nonlocal image_size, offset, dispersion, freq
-        return (i-image_size+offset)*dispersion+freq
+    def single(self, i):
+        global freq
+        return (i-self.image_size+self.offset)*self.dispersion+freq
 
-    def index(f):
-        nonlocal image_size, offset, dispersion, freq
+    def index(self, f):
+        global freq
         # f=(i-image_size+offset)*dispersion+freq
-        return i=round((f-freq)/dispersion+image_size-offset)
+        return round((f-freq)/self.dispersion+self.image_size-self.offset)
 
-    def unrounded():
-        nonlocal freq_array
-        return freq_array
+    def get_freq_unrounded(self):
+        return self.freq_array
 
-    return round(freq_array)
+    def get_freq(self):
+        return [round(i) for i in self.freq_array]
 
 def get_angles():
     """Функция из старых файлов Origin"""
@@ -273,7 +274,7 @@ def preprocessing_plot():
     array[array<0]= 0
 
     angle_array=get_angles()
-    freq_array=get_freq()
+    freq_class=x_axis_frequency()
 
     #Применение фильтров
     image_size=array.shape[1]
@@ -292,7 +293,7 @@ def preprocessing_plot():
         y=(filter_array[:,1]).transpose()
         filter_function= interpolate.interp1d(x,y, fill_value="extrapolate")
         filter_vector_function= np.vectorize(filter_function)
-        array_factor*=filter_vector_function(freq_array)
+        array_factor*=filter_vector_function(freq_class.get_freq())
     do_list_rem_filter('', len(filters))
     do_list_rem_filter('', len(filters))
     filters_number= filters_number-2
@@ -317,26 +318,28 @@ def show_plot():
     plot.set_xlabel('Длина волны, нм')
     plot.set_title(graph_title)
     angle_array=get_angles()
-    freq_array=get_freq()
+    freq_class=x_axis_frequency()
 
     #Изменение меток на осях
-    left, right= xlim()
-    min_freq=freq_step*ceil(get_freq.single(left)/freq_step)
-    max_freq=freq_step*floor(get_freq.single(right)/freq_step)
+    if (freq_from and freq_to): #   обрезка изображения
+        x_from=freq_class.index(freq_from)
+        x_to=freq_class.index(freq_to)
+        plt.xlim(x_from, x_to)
+        left, right= x_from, x_to
+    else:
+        left, right= plt.xlim()
+    min_freq=freq_step*ceil(freq_class.single(left)/freq_step)
+    max_freq=freq_step*floor(freq_class.single(right)/freq_step)
     new_label=range(min_freq,max_freq+freq_step,freq_step)
-    new_tick= [get_freq.index(i) for i in new_label]
-    plt.xticks(ticks=new_tick, labels=new_label, rotation=0)
+    new_tick= [freq_class.index(i) for i in new_label]
+    plt.xticks(ticks=new_tick, labels=new_label, rotation=0, size='xx-large')
 
     min_angle=angle_step*ceil(angle_array[-1]/angle_step)
     max_angle=angle_step*floor(angle_array[0]/angle_step)
     new_label=range(min_angle,max_angle+angle_step,angle_step)
     new_tick= [find_nearest(angle_array,new_label[i]) for i in range (0, len(new_label))]
-    plt.yticks(ticks=new_tick, labels=new_label)
+    plt.yticks(ticks=new_tick, labels=new_label, size='xx-large')
 
-    if (freq_from and freq_to): #   обрезка изображения
-        x_from=get_freq.index(freq_from)
-        x_to=get_freq.index(freq_to)
-        plt.xlim(x_from, x_to)
 
 
     plt.ion()
@@ -345,8 +348,6 @@ def show_plot():
 
 def do_plot (self, args):
     """Открывает окно с графиком и текущими настройками в неблокирующем режиме"""
-    freq_array=get_freq()
-    angle_array=get_angles()
     preprocessing_plot()
     show_plot()
 
