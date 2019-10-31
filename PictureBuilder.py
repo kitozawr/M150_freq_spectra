@@ -11,8 +11,6 @@ import matplotlib.pylab as plt
 import seaborn as sns; sns.set()
 import numpy as np
 
-
-#Цвета для вывода в терминал
 REDCOLOR = '\033[1;31;40m'
 GREENCOLOR = '\033[0;32;47m'
 PINKCOLOR= '\033[1;35;40m'
@@ -94,6 +92,7 @@ def do_ask_add_filter(self,args):
     global address_of_filters
     root = Tk()
     root.withdraw()
+    root.option_add('*foreground', 'black')
     root.filename =  filedialog.askopenfilename(initialdir = address_of_filters,title = "Select file",filetypes=(("Filters", "*.txt"),("All files","*.*")))
     filename = root.filename
     if  (type(filename)==str):
@@ -139,6 +138,7 @@ def do_ask_save_file(self, args):
     global plot
     root = Tk()
     root.withdraw()
+    root.option_add('*foreground', 'black')
     root.filename = filedialog.asksaveasfilename(filetypes=(("PNG files only","*.png"),("All files","*.*")))
     file_name= root.filename
     plt.tight_layout()
@@ -151,6 +151,7 @@ def do_ask_open_file(self, reopen_without_asking_anything=False):
     global initdir, global_basename, global_filename
     root = Tk()
     root.withdraw()
+    root.option_add('*foreground', 'black')
     if (reopen_without_asking_anything):
         root.filename = global_filename
     else:
