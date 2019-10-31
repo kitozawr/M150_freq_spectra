@@ -42,7 +42,7 @@ def do_processing_plot(self, mode):
 
     def save_cropped_image():
         global x_corner, x_width, y_corner, y_height
-        freq_array=PB.get_freq(rounded=0)
+        freq_array=PB.get_freq.unrounded()
         subarray=PB.array[y_corner:y_corner+y_height,x_corner:x_corner+x_width]
         mean_subarray= subarray.mean(axis=0)
         print (PB.global_basename[:PB.global_basename.find("_")], mean_subarray.max(), freq_array[mean_subarray.argmax()+x_corner])
@@ -106,7 +106,7 @@ def do_processing_plot(self, mode):
             fig.tight_layout()
             plt.show()
 
-        freq= PB.get_freq(rounded=0)
+        freq= PB.get_freq.unrounded()
         #f= open(PB.address_of_save_fig+'/'+PB.global_basename.replace('dat','txt'), "a")
         f= open(PB.address_of_save_fig+'/'+os.path.basename(os.path.dirname(PB.global_filename))+".txt", "a")
         np.savetxt(f, [[freq[i] for i in (coordinates[:, 1]) if freq[i]>800]], fmt='%1.4f')

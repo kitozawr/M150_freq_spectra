@@ -182,7 +182,7 @@ def do_data_to_array(self, name_of_file):
     array= np.fromfile(name_of_file, dtype='>i2')
     array= np.reshape(array[4:], (array[1],array[3]))
 
-def get_freq(rounded=1):
+def get_freq():
     """Функция uз старых файлов Origin"""
     global array
     global grate, array, freq
@@ -198,12 +198,23 @@ def get_freq(rounded=1):
         dispersion=0.03656
     else:
         print("Wrong grate")
-        return None
-    if (rounded):
-        freq_array=[round((i-1-image_size+offset)*dispersion+freq) for i in range(1,image_size+1)]
-    else:
-        freq_array=[((i-1-image_size+offset)*dispersion+freq) for i in range(1,image_size+1)]
-    return freq_array
+
+    freq_array=[get_freq.single(i) for i in range(0,image_size)]
+
+    def single(i):
+        nonlocal image_size, offset, dispersion, freq
+        return (i-image_size+offset)*dispersion+freq
+
+    def index(f):
+        nonlocal image_size, offset, dispersion, freq
+        # f=(i-image_size+offset)*dispersion+freq
+        return i=round((f-freq)/dispersion+image_size-offset)
+
+    def unrounded():
+        nonlocal freq_array
+        return freq_array
+
+    return round(freq_array)
 
 def get_angles():
     """Функция из старых файлов Origin"""
@@ -309,19 +320,22 @@ def show_plot():
     freq_array=get_freq()
 
     #Изменение меток на осях
-    min_freq=freq_step*ceil(freq_array[0]/freq_step)
-    max_freq=freq_step*floor(freq_array[-1]/freq_step)
+    left, right= xlim()
+    min_freq=freq_step*ceil(get_freq.single(left)/freq_step)
+    max_freq=freq_step*floor(get_freq.single(right)/freq_step)
     new_label=range(min_freq,max_freq+freq_step,freq_step)
-    new_tick= [find_nearest(freq_array,new_label[i]) for i in range (0, len(new_label))]
+    new_tick= [get_freq.index(i) for i in new_label]
     plt.xticks(ticks=new_tick, labels=new_label, rotation=0)
+
     min_angle=angle_step*ceil(angle_array[-1]/angle_step)
     max_angle=angle_step*floor(angle_array[0]/angle_step)
     new_label=range(min_angle,max_angle+angle_step,angle_step)
     new_tick= [find_nearest(angle_array,new_label[i]) for i in range (0, len(new_label))]
     plt.yticks(ticks=new_tick, labels=new_label)
-    if (freq_from and freq_to):
-        x_from=find_nearest(freq_array,freq_from)
-        x_to=find_nearest(freq_array,freq_to)
+
+    if (freq_from and freq_to): #   обрезка изображения
+        x_from=get_freq.index(freq_from)
+        x_to=get_freq.index(freq_to)
         plt.xlim(x_from, x_to)
 
 
