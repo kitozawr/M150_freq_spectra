@@ -135,16 +135,16 @@ def do_print_filters(self, args):
 
 def do_ask_save_file(self, args):
     """Открытие GUI окна выбора файла для сохранения"""
-    global plot
+    global plot, global_filename
     root = Tk()
     root.withdraw()
     root.option_add('*foreground', 'black')
-    root.filename = filedialog.asksaveasfilename(filetypes=(("PNG files only","*.png"),("All files","*.*")))
+    root.filename = filedialog.asksaveasfilename(filetypes=(("PNG files only","*.png"),("All files","*.*")), initialfile=os.path.basename(os.path.dirname(global_filename))+" "+os.path.split(os.path.splitext(global_filename)[-2])[-1])
     file_name= root.filename
     plt.tight_layout()
     plt.tight_layout()
     plt.tight_layout()
-    plt.savefig(file_name, dpi=600)
+    plt.savefig(file_name)
 
 def do_ask_open_file(self, reopen_without_asking_anything=False):
     """Открытие GUI окна выбора файла для открытия"""
@@ -311,12 +311,14 @@ def preprocessing_plot():
 
 def show_plot():
     global freq_from, freq_to, this_array_has_a_plot, plot, graph_title, rot180, freq_step, angle_step, array, scale, grate, filters, filters_number
+    plt.figure( figsize=(16,9), dpi=150)
+
     if (scale=='log'):
         plot = sns.heatmap(array, vmin=-5, vmax=0, cmap="nipy_spectral", cbar_kws={'label':'Относительная интенсивность'})
     else:
         plot = sns.heatmap(array, cmap="nipy_spectral", cbar_kws={'label':'Относительная интенсивность'})
-    plot.set_ylabel('Угол, мрад')
-    plot.set_xlabel('Длина волны, нм')
+    plot.set_ylabel('Угол, мрад', size='x-large')
+    plot.set_xlabel('Длина волны, нм', size='x-large')
     plot.set_title(graph_title)
     angle_array=get_angles()
     freq_class=x_axis_frequency()
