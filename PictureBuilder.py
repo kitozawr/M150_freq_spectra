@@ -139,7 +139,7 @@ def do_ask_save_file(self, args):
     root = Tk()
     root.withdraw()
     root.option_add('*foreground', 'black')
-    root.filename = filedialog.asksaveasfilename(filetypes=(("PNG files only","*.png"),("All files","*.*")), initialfile=os.path.basename(os.path.dirname(global_filename))+" "+os.path.split(os.path.splitext(global_filename)[-2])[-1])
+    root.filename = filedialog.asksaveasfilename(initialdir="~", filetypes=(("PNG files only","*.png"),("All files","*.*")), initialfile=os.path.basename(os.path.dirname(global_filename))+" "+os.path.split(os.path.splitext(global_filename)[-2])[-1])
     file_name= root.filename
     plt.tight_layout()
     plt.tight_layout()
