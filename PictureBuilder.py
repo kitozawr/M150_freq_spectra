@@ -2,8 +2,8 @@ from tkinter import *
 from tkinter import filedialog
 from math import floor, ceil
 from scipy import interpolate
-from PictureBuilder.remove_bd import *
-from PictureBuilder.processing import *
+from remove_bd import *
+from processing import *
 import sys
 import os
 import pickle
@@ -29,7 +29,7 @@ global_basename=None
 global_filename=None
 
 #Адреса папок
-adress_of_home_dir='/home/student/Desktop/PictureBuilder/'
+adress_of_home_dir='./'
 address_of_last_dir_savefile= adress_of_home_dir+'spectrograph_last_dir.pkl'
 address_of_filters= adress_of_home_dir+'Filters'
 address_of_bd_map= adress_of_home_dir+'bd_map.txt'
