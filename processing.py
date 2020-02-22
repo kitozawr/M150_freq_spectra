@@ -7,6 +7,7 @@ from skimage.feature import peak_local_max
 from skimage import data, img_as_float
 from scipy import ndimage as ndi
 import os
+import pandas as pd
 
 x_corner=0
 y_corner=0
@@ -34,6 +35,13 @@ def do_processing_plot(self, mode):
         finding_local_maxima()
     def tight_layout():
         plt.tight_layout()
+
+    def save_data_frame():
+        freq_class= PB.x_axis_frequency()
+        freq_array=freq_class.get_freq_unrounded()
+        angle_array=PB.get_angles_unrounded()
+        data_frame= pd.DataFrame(PB.array, columns= freq_array, index= angle_array)
+        data_frame.to_csv(PB.address_of_save_fig+'/'+os.path.basename(os.path.dirname(PB.global_filename))+"_csv.txt", sep=' ')
 
     def draw_rectangle():
         global x_corner, x_width, y_corners, y_height
@@ -80,10 +88,10 @@ def do_processing_plot(self, mode):
         im = PB.array[y_corner:y_corner+y_height,x_corner:x_corner+x_width]
         # image_max is the dilation of im with a 20*20 structuring element
         # It is used within peak_local_max function
-        image_max = ndi.maximum_filter(im, size=30, mode='constant')
+        image_max = ndi.maximum_filter(im, size=10, mode='constant')
 
         # Comparison between image_max and im to find the coordinates of local maxima
-        coordinates = peak_local_max(im, min_distance=30)
+        coordinates = peak_local_max(im, min_distance=10)
 
         def display_results():
             nonlocal im, image_max, coordinates
@@ -128,6 +136,7 @@ def do_processing_plot(self, mode):
                     'save_crop': save_cropped_image,
                     'find_max': finding_local_maxima,
                     'tl': tight_layout,
+                    'df': save_data_frame,
                     'default': default
                 }
     selected_function = functions.get(mode)

@@ -11,6 +11,7 @@ import matplotlib.pylab as plt
 import seaborn as sns; sns.set()
 import numpy as np
 
+
 REDCOLOR = '\033[1;31;40m'
 GREENCOLOR = '\033[0;32;47m'
 PINKCOLOR= '\033[1;35;40m'
@@ -37,6 +38,7 @@ address_of_save_fig= adress_of_home_dir+ 'Saves'
 
 #Параметры внешнего вида спектра
 array = np.array([[1,2,3,4], [5,6,7,8], [9,10,11,12]])
+data_frame= None
 freq_step=50
 freq_from= 0
 freq_to=   0
@@ -223,6 +225,13 @@ def get_angles():
     global array
     image_size=array.shape[0]
     angle=[round(-0.0175*(i-1))+11 for i in range(1,image_size+1)]
+    return angle
+
+def get_angles_unrounded():
+    """Функция из старых файлов Origin"""
+    global array
+    image_size=array.shape[0]
+    angle=[(-0.0175*(i-1))+11 for i in range(1,image_size+1)]
     return angle
 
 def find_nearest(array, value):
