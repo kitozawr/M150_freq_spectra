@@ -320,7 +320,7 @@ def preprocessing_plot():
 
 def show_plot():
     global freq_from, freq_to, this_array_has_a_plot, plot, graph_title, rot180, freq_step, angle_step, array, scale, grate, filters, filters_number
-    plt.figure( figsize=(16,9), dpi=150)
+    plt.figure(figsize=(16,9), dpi=150)
 
     if (scale=='log'):
         plot = sns.heatmap(array, vmin=-5, vmax=0, cmap="nipy_spectral", cbar_kws={'label':'Относительная интенсивность'})
