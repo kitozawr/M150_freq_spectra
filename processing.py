@@ -46,7 +46,7 @@ def do_processing_plot(self, mode):
         freq_array=freq_class.get_freq_unrounded()
         angle_array=PB.get_angles_unrounded()
         data_frame= pd.DataFrame(PB.array, columns= freq_array, index= angle_array)
-        data_frame.to_csv(PB.address_of_save_fig+'/'+os.path.basename(os.path.dirname(PB.global_filename))+"_csv.txt", sep=' ')
+        data_frame.to_csv(PB.address_of_save_df+'/'+os.path.basename(os.path.dirname(PB.global_filename))+"_csv.txt", sep=' ')
 
     def draw_rectangle():
         global x_corner, x_width, y_corners, y_height

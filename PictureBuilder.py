@@ -411,7 +411,7 @@ def show_plot():
     if (patch_mode):
         rect = patches.Rectangle((x_from,angle_from),(x_to-x_from),(angle_to-angle_from),linewidth=1,edgecolor='r',facecolor='none')
         ax.add_patch(rect)
-
+    ax.set_facecolor('black')
     fig.tight_layout()
 
 def do_plot (self, args):
