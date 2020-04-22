@@ -1,6 +1,5 @@
 import PictureBuilder as PB
 import matplotlib.pylab as plt
-import matplotlib.patches as patches
 import numpy as np
 from matplotlib.widgets import RectangleSelector
 from skimage.feature import peak_local_max
@@ -32,12 +31,12 @@ def toggle_selector(event):
 def do_processing_plot(self, mode):
     def default():
         #set_parameters(X=0, W=1920, Y=375, H=80)
-        #finding_local_maxima()
-        fig = plt.figure(dpi=100, tight_layout=True, frameon=False, figsize=(1920/100.,1200/100.))
-        fig.figimage(PB.array, cmap="nipy_spectral")
-        fig.text(0,0,PB.global_basename[:PB.global_basename.find("_")], fontsize=100, backgroundcolor='white', alpha=0.5)
-        plt.savefig(PB.address_of_save_fig+'/'+PB.global_basename.replace('dat','png'))
-        plt.close(fig)
+        finding_local_maxima()
+        #fig = plt.figure(dpi=100, tight_layout=True, frameon=False, figsize=(1920/100.,1200/100.))
+        #fig.figimage(PB.array, cmap="nipy_spectral")
+        #fig.text(0,0,PB.global_basename[:PB.global_basename.find("_")], fontsize=100, backgroundcolor='white', alpha=0.5)
+        #plt.savefig(PB.address_of_save_fig+'/'+PB.global_basename.replace('dat','png'))
+        #plt.close(fig)
 
     def tight_layout():
         plt.tight_layout()

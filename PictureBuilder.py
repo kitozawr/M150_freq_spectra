@@ -3,19 +3,20 @@ from tkinter import filedialog
 from math import floor, ceil
 from scipy import interpolate
 from remove_bd import *
-from processing import *
+from processing import do_processing_plot
 import sys
 import os
 import pickle
 import matplotlib.pylab as plt
-import seaborn as sns; sns.set()
 import numpy as np
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+import matplotlib.patches as patches
+import PySimpleGUI as sg
 
-
-REDCOLOR = '\033[1;31;40m'
-GREENCOLOR = '\033[0;32;47m'
-PINKCOLOR= '\033[1;35;40m'
-NORMALCOLOR =  '\033[0m'
+REDCOLOR='# '
+GREENCOLOR='№ '
+PINKCOLOR='@ '
+NORMALCOLOR=''
 
 #Базовые параметры разметки спектра
 freq=None
@@ -34,7 +35,8 @@ adress_of_home_dir='./'
 address_of_last_dir_savefile= adress_of_home_dir+'spectrograph_last_dir.pkl'
 address_of_filters= adress_of_home_dir+'Filters'
 address_of_bd_map= adress_of_home_dir+'bd_map.txt'
-address_of_save_fig= adress_of_home_dir+ 'Saves'
+address_of_save_fig= adress_of_home_dir+ 'Output pictures'
+address_of_save_df= adress_of_home_dir+ 'Output csv'
 
 #Параметры внешнего вида спектра
 array = np.array([[1,2,3,4], [5,6,7,8], [9,10,11,12]])
@@ -42,10 +44,18 @@ data_frame= None
 freq_step=50
 freq_from= 0
 freq_to=   0
+angle_from= 0
+angle_to= 0
 angle_step=2
 filters={}
 filters_number=0
 this_array_has_a_plot= False
+
+normalize= True
+patch_mode= False
+angle_shift=0
+translate_rus=True
+insert_title= True
 
 if os.path.isfile(address_of_last_dir_savefile):
     with open(address_of_last_dir_savefile,'rb') as dir_save_file:
@@ -54,33 +64,49 @@ else:
     with open(address_of_last_dir_savefile,'wb') as dir_save_file:
         pickle.dump('/', dir_save_file)
 
+def update_progbar(window, i):
+    window['progbar'].update_bar(i + 1)
+
+def do_folder_preview(window, args):
+    global global_filename, global_basename, array, address_of_save_fig
+    """Для всех файлов папки, где в последний раз был открыт файл, идет переконвертация (учитывая битые области, фильтры, поворот) в png.
+    Работает с последним открытым типом файлов. """
+    pathname=os.path.dirname(global_filename)
+    filename_extension = os.path.splitext(global_filename)[-1]
+    i=1
+    if (pathname):
+        for file in os.listdir(pathname):
+            event, values = window.read(timeout=0)
+            if event == 'Cancel' or event is None:
+                break
+            update_progbar(window, int(i/len(os.listdir(pathname))*1000)); i+=1
+            if file.endswith(filename_extension):
+                global_basename= file
+                if file.endswith(".png"):
+                    do_image_to_array('', pathname+"/"+file)
+                elif file.endswith(".dat"):
+                    do_data_to_array('', pathname+"/"+file)
+                preprocessing_plot()
+                fig = plt.figure(dpi=100, tight_layout=True, frameon=False, figsize=(1920/100.,1200/100.))
+                fig.figimage(array, cmap="nipy_spectral")
+                fig.text(0,0,global_basename[:global_basename.find("_")], fontsize=100, backgroundcolor='white', alpha=0.5)
+                plt.savefig(address_of_save_fig+'/'+global_basename.replace('dat','png'))
+                plt.close(fig)
+
+
 def do_set_freq_limits (self,f):
     '''выбор пределов построения графика set(от [нм],до [нм]) ввод через пробел'''
     global freq_from, freq_to
     freq_from= int (f.split()[0])
     freq_to=   int (f.split()[1])
 
-def do_processing_all_files_in_a_folder(self,args):
-    """Для всех файлов папки, где в последний раз был открыт файл, идет переконвертация
-    (битые области, фильтры, поворот) сырых данных в готовый массив для дальнейшей обработки.
-    Работает с последним открытым типом файлов. Алгоритм обработки описывается в processing.py"""
-    global array, global_filename,global_basename
-    pathname=os.path.dirname(global_filename)
-    filename_extension = os.path.splitext(global_filename)[-1]
-    if (pathname):
-        for file in os.listdir(pathname):
-            global_basename= file
-            if file.endswith(filename_extension):
-                if file.endswith(".png"):
-                    do_image_to_array('', pathname+"/"+file)
-                    preprocessing_plot()
-                    do_processing_plot(self='', mode='default')
-                elif file.endswith(".dat"):
-                    do_data_to_array('', pathname+"/"+file)
-                    preprocessing_plot()
-                    do_processing_plot(self='', mode='default')
+def do_set_angle_limits (self,a):
+    '''выбор пределов построения графика set(от [пикс],до [пикс]) ввод через пробел'''
+    global angle_from, angle_to
+    angle_from= int (a.split()[0])
+    angle_to=   int (a.split()[1])
 
-def do_rotate(self, args=1):
+def do_rotate_image(self, args=1):
     """Вращает на 90 градусов против часовой n раз. Количество поворотов обязательно"""
     global array
     array=np.rot90(array, k=int(args))
@@ -102,10 +128,10 @@ def do_ask_add_filter(self,args):
         base = os.path.basename(filename)
         base_name = os.path.splitext(base)[0]
         if  filename_extension == ".txt":
-            do_list_add_filter(self='', name_of_file=base_name)
+            do_list_push_filter(self='', name_of_file=base_name)
     root.destroy()
 
-def do_list_add_filter(self, name_of_file):
+def do_list_push_filter(self, name_of_file):
     """Добавить новый фильтр. Принимает название файла без расширения. Ищет в папке Filters"""
     global filters, filters_number
     if (name_of_file!=''):
@@ -118,7 +144,7 @@ def do_list_clear_filters(self, args):
     filters={}
     filters_number=0
 
-def do_list_rem_filter(self, number):
+def do_list_pop_filter(self, number):
     """Удалить последний фильтр. Принимает номер в списке <int>"""
     global filters, filters_number
     del filters[filters_number]
@@ -171,7 +197,8 @@ def do_ask_open_file(self, reopen_without_asking_anything=False):
         elif filename_extension == ".dat":
             do_data_to_array(self='', name_of_file=root.filename)
         basepathname =os.path.basename(os.path.dirname(root.filename))
-        do_set_parameters(self='',pathname=os.path.dirname(root.filename), dirname=basepathname)
+        if not reopen_without_asking_anything:
+            do_set_parameters(self='',pathname=os.path.dirname(root.filename), dirname=basepathname)
     root.destroy()
 
 def do_image_to_array(self, name_of_file):
@@ -222,16 +249,16 @@ class x_axis_frequency:
 
 def get_angles():
     """Функция из старых файлов Origin"""
-    global array
+    global array, angle_shift
     image_size=array.shape[0]
-    angle=[round(-0.0175*(i-1))+11 for i in range(1,image_size+1)]
+    angle=[round(-0.0175*(i-1))+11+angle_shift for i in range(1,image_size+1)]
     return angle
 
 def get_angles_unrounded():
     """Функция из старых файлов Origin"""
-    global array
+    global array, angle_shift
     image_size=array.shape[0]
-    angle=[(-0.0175*(i-1))+11 for i in range(1,image_size+1)]
+    angle=[(-0.0175*(i-1))+11+angle_shift for i in range(1,image_size+1)]
     return angle
 
 def find_nearest(array, value):
@@ -258,7 +285,7 @@ def do_set_rotate(self,args):
         rot180=False
 
 def preprocessing_plot():
-    global freq_from, freq_to, this_array_has_a_plot, plot, graph_title, rot180, freq_step, angle_step, array, scale, grate, filters, filters_number
+    global freq_from, freq_to, this_array_has_a_plot, plot, graph_title, rot180, freq_step, angle_step, array, scale, grate, filters, filters_number, normalize
 
     if (this_array_has_a_plot):
         do_ask_open_file(self='', reopen_without_asking_anything=True)
@@ -268,7 +295,7 @@ def preprocessing_plot():
     (bd_mult, bd_single)= read_bd_map(address_of_bd_map)
     apply_bd_map(array, bd_mult, bd_single)
     if (rot180):
-        do_rotate(self='', args=2)
+        do_rotate_image(self='', args=2)
 
     width_of_background_borders=10
     border_1= np.mean(array[:width_of_background_borders, :width_of_background_borders],)
@@ -289,13 +316,13 @@ def preprocessing_plot():
     #Применение фильтров
     image_size=array.shape[1]
     array_factor= np.ones(image_size)
-    do_list_add_filter("", name_of_file="Camera")
+    do_list_push_filter("", name_of_file="Camera")
     if   (grate==300):
-        do_list_add_filter("", name_of_file="300")
+        do_list_push_filter("", name_of_file="300")
     elif (grate==600):
-        do_list_add_filter("", name_of_file="600")
+        do_list_push_filter("", name_of_file="600")
     elif (grate==900):
-        do_list_add_filter("", name_of_file="900")
+        do_list_push_filter("", name_of_file="900")
 
     for key, value in filters.items():
         filter_array=np.loadtxt(address_of_filters+'/'+value+'.txt')
@@ -304,62 +331,93 @@ def preprocessing_plot():
         filter_function= interpolate.interp1d(x,y, fill_value="extrapolate")
         filter_vector_function= np.vectorize(filter_function)
         array_factor*=filter_vector_function(freq_class.get_freq())
-    do_list_rem_filter('', len(filters))
-    do_list_rem_filter('', len(filters))
+    do_list_pop_filter('', len(filters))
+    do_list_pop_filter('', len(filters))
     filters_number= filters_number-2
     array_factor_reciprocal=np.reciprocal(array_factor)
     array_factor_rec_diag=np.diag(array_factor_reciprocal)
     array= array @ array_factor_rec_diag
 
     MAX=array.max()
-    array *= 1.0/MAX
+    if (normalize):
+        array *= 1.0/MAX
     if (scale=='log'):
         array[array<=0] = np.exp(-10)
         array= np.log(array)
 
 
 def show_plot():
-    global freq_from, freq_to, this_array_has_a_plot, plot, graph_title, rot180, freq_step, angle_step, array, scale, grate, filters, filters_number
-    plt.figure( figsize=(16,9), dpi=150)
+    global angle_from, angle_to, freq_from, freq_to, this_array_has_a_plot, plot, graph_title, rot180, freq_step, angle_step, array, scale, grate, filters, filters_number,patch_mode, translate_rus,insert_title
+    fig, ax = plt.subplots()
 
     if (scale=='log'):
-        plot = sns.heatmap(array, vmin=-5, vmax=0, cmap="nipy_spectral", cbar_kws={'label':'Относительная интенсивность'})
+        im = ax.imshow(array, cmap="nipy_spectral", vmin=-5, vmax=0, aspect='auto')
     else:
-        plot = sns.heatmap(array, cmap="nipy_spectral", cbar_kws={'label':'Относительная интенсивность'})
-    plot.set_ylabel('Угол, мрад', size='x-large')
-    plot.set_xlabel('Длина волны, нм', size='x-large')
-    plot.set_title(graph_title)
+        im = ax.imshow(array, cmap="nipy_spectral", aspect='auto')
+
+    divider = make_axes_locatable(ax)
+    cax = divider.append_axes("right", size="5%", pad=0.05)
+    cbar = ax.figure.colorbar(im, ax=ax, cax=cax)
+    if (scale=='log'):
+        ctks = [-5,-4,-3,-2,-1,0]
+        ctkls = ["$e^{%d}$"%(v) for v in ctks[:]]
+        cbar.set_ticks(ctks)
+        cbar.set_ticklabels(ctkls)
+    if translate_rus:
+        cbar.ax.set_ylabel("Относительная интенсивность", rotation=-90, va="bottom")
+        ax.set_ylabel('Угол, мрад')
+        ax.set_xlabel('Длина волны, нм')
+    else:
+        cbar.ax.set_ylabel("Relative intensity", rotation=-90, va="bottom")
+        ax.set_ylabel('Angle, mrad')
+        ax.set_xlabel('Wavelength, nm')
+
+    if insert_title:
+        ax.set_title(graph_title, fontsize=8)
     angle_array=get_angles()
     freq_class=x_axis_frequency()
 
     #Изменение меток на осях
+    left, right= ax.get_xlim()
     if (freq_from and freq_to): #   обрезка изображения
         x_from=freq_class.index(freq_from)
         x_to=freq_class.index(freq_to)
-        plt.xlim(x_from, x_to)
+        if not patch_mode:
+            ax.set_xlim(x_from, x_to)
         left, right= x_from, x_to
     else:
-        left, right= plt.xlim()
+        x_from= left
+        x_to= right
+
     min_freq=freq_step*ceil(freq_class.single(left)/freq_step)
     max_freq=freq_step*floor(freq_class.single(right)/freq_step)
     new_label=range(min_freq,max_freq+freq_step,freq_step)
     new_tick= [freq_class.index(i) for i in new_label]
-    plt.xticks(ticks=new_tick, labels=new_label, rotation=0, size='xx-large')
+    ax.set_xticks(new_tick)
+    ax.set_xticklabels(new_label)
 
     min_angle=angle_step*ceil(angle_array[-1]/angle_step)
     max_angle=angle_step*floor(angle_array[0]/angle_step)
     new_label=range(min_angle,max_angle+angle_step,angle_step)
     new_tick= [find_nearest(angle_array,new_label[i]) for i in range (0, len(new_label))]
-    plt.yticks(ticks=new_tick, labels=new_label, size='xx-large')
+    ax.set_yticks(new_tick)
+    ax.set_yticklabels(new_label)
+    if (angle_from and angle_to):
+        if not patch_mode:
+            ax.set_ylim(angle_from, angle_to)
+    else:
+        angle_from= 0
+        angle_to=  len(angle_array)
+    if (patch_mode):
+        rect = patches.Rectangle((x_from,angle_from),(x_to-x_from),(angle_to-angle_from),linewidth=1,edgecolor='r',facecolor='none')
+        ax.add_patch(rect)
 
-
-
-    plt.ion()
-    plt.show()
-    plt.tight_layout()
+    fig.tight_layout()
 
 def do_plot (self, args):
     """Открывает окно с графиком и текущими настройками в неблокирующем режиме"""
+    global normalize, patch_mode, angle_shift, translate_rus, insert_title
+    normalize, patch_mode, angle_shift, translate_rus, insert_title=args
     preprocessing_plot()
     show_plot()
 
@@ -407,7 +465,7 @@ def do_save_parameters (self, args):
 
 def do_set_parameters (self, pathname="", frequency=0, grating=0, dirname=False, rotate=None, scaletype=False, title=None):
     global freq, grate, rot180, scale, graph_title, path, filters, filters_number
-    print (PINKCOLOR+"Введенный/"+GREENCOLOR+'сохраненный'+REDCOLOR +"/по умолчанию" + NORMALCOLOR +" параметр:")
+    print (PINKCOLOR+"Введенный/"+GREENCOLOR+'сохраненный/'+REDCOLOR +"по умолчанию" + NORMALCOLOR +" параметр:")
 
     path=pathname
     if (pathname!=''):
