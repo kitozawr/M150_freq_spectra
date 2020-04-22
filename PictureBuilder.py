@@ -396,18 +396,24 @@ def show_plot():
     ax.set_xticks(new_tick)
     ax.set_xticklabels(new_label)
 
-    min_angle=angle_step*ceil(angle_array[-1]/angle_step)
-    max_angle=angle_step*floor(angle_array[0]/angle_step)
+    if not (angle_from or angle_to):
+        angle_start= 0
+        angle_finish=  len(angle_array)-1
+    else:
+        angle_start= angle_from
+        angle_finish=  angle_to
+    min_angle=angle_step*ceil(angle_array[angle_finish]/angle_step)
+    max_angle=angle_step*floor(angle_array[angle_start]/angle_step)
     new_label=range(min_angle,max_angle+angle_step,angle_step)
     new_tick= [find_nearest(angle_array,new_label[i]) for i in range (0, len(new_label))]
     ax.set_yticks(new_tick)
     ax.set_yticklabels(new_label)
-    if (angle_from and angle_to):
+    if (angle_from or angle_to):
         if not patch_mode:
-            ax.set_ylim(angle_from, angle_to)
+            ax.set_ylim(angle_to, angle_from)
     else:
         angle_from= 0
-        angle_to=  len(angle_array)
+        angle_to=  len(angle_array)-1
     if (patch_mode):
         rect = patches.Rectangle((x_from,angle_from),(x_to-x_from),(angle_to-angle_from),linewidth=1,edgecolor='r',facecolor='none')
         ax.add_patch(rect)

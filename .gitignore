@@ -2,7 +2,8 @@
 __pycache__/__init__.cpython-37.pyc
 __pycache__/PictureBuilder.cpython-37.pyc
 __pycache__/remove_bd.cpython-37.pyc
-Saves/
+Output csv/
+Output pictures/
 spectrograph_filters.pkl
 spectrograph_last_dir.pkl
 *.png
@@ -10,9 +11,6 @@ spectrograph_last_dir.pkl
 __pycache__/processing.cpython-37.pyc
 spectrograph_parameters.pkl
 __pycache__/processing.cpython-37.pyc
-__pycache__/processing.cpython-37.pyc
-__pycache__/processing.cpython-37.pyc
-*.pyc
 *.pyc
 find_limits.py
-*.pyc
+favicon.heic

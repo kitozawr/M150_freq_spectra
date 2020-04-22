@@ -47,14 +47,14 @@ tab3_layout = [[sg.Text('_'  * 89)],
                [sg.ProgressBar(1000, orientation='h', size=(20, 20), key='progbar')],
                [sg.Text('_'  * 89)],
                [sg.Text('Extra options:')],
-               [sg.Button('Save .csv to ./Output')]]
+               [sg.Button('Save .csv to ./Output'), sg.Button('Find local max')]]
 
-layout = [[sg.Menu(menu_def, tearoff=False, pad=(200, 1))],
+layout = [[sg.Menu(menu_def, tearoff=True, pad=(200, 1))],
           [sg.TabGroup([[sg.Tab('Graph', tab1_layout), sg.Tab('Parameters', tab2_layout), sg.Tab('Data manipulation', tab3_layout)]]) ],
           [sg.Button('Open'), sg.Button('Show', bind_return_key=True), sg.Button('Save'), sg.Button('Exit')]]
 
 # create the form and show it without the plot
-window = sg.Window('Demo Application - Embedding Matplotlib In PySimpleGUI', layout, finalize=True, return_keyboard_events=True)
+window = sg.Window('Частотно-угловой спектр', layout, finalize=True, return_keyboard_events=True)
 
 # add the plot to the window
 fig_canvas_agg = None
@@ -118,6 +118,8 @@ while True:
         do_folder_preview(window,'')
     elif event == 'Save .csv to ./Output':
         do_processing_plot('', mode='df')
+    elif event == 'Find local max':
+        do_processing_plot('', mode='find_max')
     elif event == '_SLIDER_':
         window['_SHIFT_'].update(values['_SLIDER_'])
     elif event == 'About...':

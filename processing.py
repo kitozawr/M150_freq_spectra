@@ -7,6 +7,7 @@ from skimage import data, img_as_float
 from scipy import ndimage as ndi
 import os
 import pandas as pd
+import PySimpleGUI as sg
 
 x_corner=0
 y_corner=0
@@ -90,6 +91,17 @@ def do_processing_plot(self, mode):
 
     def finding_local_maxima():
         global x_corner, x_width, y_corner, y_height
+        freq_class= PB.x_axis_frequency()
+        freq=freq_class.get_freq_unrounded()
+
+        if (PB.freq_from and PB.freq_to): #   обрезка изображения
+            x_from=freq_class.index(PB.freq_from)
+            x_to=freq_class.index(PB.freq_to)
+            x_corner=x_from
+            x_width=x_to-x_from
+        if (PB.angle_from or PB.angle_to):
+            y_corner= PB.angle_from
+            y_height= (PB.angle_to-PB.angle_from)
         im = PB.array[y_corner:y_corner+y_height,x_corner:x_corner+x_width]
         # image_max is the dilation of im with a 20*20 structuring element
         # It is used within peak_local_max function
@@ -99,6 +111,7 @@ def do_processing_plot(self, mode):
         coordinates = peak_local_max(im, min_distance=10)
 
         def display_results():
+            plt.close('all')
             nonlocal im, image_max, coordinates
             fig, axes = plt.subplots(3, 1, sharex=True, sharey=True)
             ax = axes.ravel()
@@ -118,10 +131,9 @@ def do_processing_plot(self, mode):
             ax[2].set_title('Peak local max')
 
             fig.tight_layout()
-            plt.show()
+            plt.show(block=False)
 
-        freq_class= PB.x_axis_frequency()
-        freq=freq_class.get_freq_unrounded()
+
         #f= open(PB.address_of_save_fig+'/'+PB.global_basename.replace('dat','txt'), "a")
         f= open(PB.address_of_save_fig+'/'+os.path.basename(os.path.dirname(PB.global_filename))+".txt", "a")
         np.savetxt(f, [[freq[i] for i in (coordinates[:, 1]) if freq[i]>800]], fmt='%1.4f')
