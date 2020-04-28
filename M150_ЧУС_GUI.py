@@ -47,7 +47,8 @@ tab3_layout = [[sg.Text('_'  * 89)],
                [sg.ProgressBar(1000, orientation='h', size=(20, 20), key='progbar')],
                [sg.Text('_'  * 89)],
                [sg.Text('Extra options:')],
-               [sg.Button('Save .csv to ./Output'), sg.Button('Find local max')]]
+               [sg.Button('Save .csv to ./Output'), sg.Button('Find local max'),sg.Button('Local max 3D (in this folder)')],
+               [sg.Button('Save .pkl to ./Output'), sg.Button('Local max 3D (in "Output pkl" folder)')]]
 
 layout = [[sg.Menu(menu_def, tearoff=True, pad=(200, 1))],
           [sg.TabGroup([[sg.Tab('Graph', tab1_layout), sg.Tab('Parameters', tab2_layout), sg.Tab('Data manipulation', tab3_layout)]]) ],
@@ -118,8 +119,12 @@ while True:
         do_folder_preview(window,'')
     elif event == 'Save .csv to ./Output':
         do_processing_plot('', mode='df')
+    elif event == 'Save .pkl to ./Output':
+        do_processing_plot('', mode='pkl')
     elif event == 'Find local max':
         do_processing_plot('', mode='find_max')
+    elif event == 'Local max 3D (in this folder)':
+        do_processing_plot('', mode='3Den')
     elif event == '_SLIDER_':
         window['_SHIFT_'].update(values['_SLIDER_']/10)
     elif event == 'About...':

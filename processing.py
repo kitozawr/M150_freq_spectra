@@ -40,24 +40,49 @@ def do_processing_plot(self, mode):
         #fig.text(0,0,PB.global_basename[:PB.global_basename.find("_")], fontsize=100, backgroundcolor='white', alpha=0.5)
         #plt.savefig(PB.address_of_save_fig+'/'+PB.global_basename.replace('dat','png'))
         #plt.close(fig)
-    def FAS_3D(x, y):
+    def FAS_3D_en():
+        global_filename=PB.global_filename
+        global_basename=PB.global_basename
+        array=PB.array
+        address_of_save_fig=PB.address_of_save_fig
+
         freq_class= PB.x_axis_frequency()
         freq_array=freq_class.get_freq_unrounded()
-
+        angle_array=PB.get_angles_unrounded()
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
-        for i,j in zip(x,y):
-            if  PB.array[i,j]>0.2:
-                ax.scatter3D([freq_array[j]],[0], [-i], c=[PB.array[i,j]], vmin=0.2, vmax=1 , cmap='Blues')
 
-        ax.set_xlabel('X Label')
-        ax.set_ylabel('Y Label')
-        ax.set_zlabel('Z Label')
+        pathname=os.path.dirname(global_filename)
+        filename_extension = os.path.splitext(global_filename)[-1]
+        if (pathname):
+            for file in os.listdir(pathname):
+                if file.endswith(filename_extension) and float(file[:file.find("_")])>3:
+                    global_basename= file
+                    if file.endswith(".png"):
+                        PB.do_image_to_array('', pathname+"/"+file)
+                    elif file.endswith(".dat"):
+                        PB.do_data_to_array('', pathname+"/"+file)
+                    PB.preprocessing_plot()
+                    x,y = finding_local_maxima()
+                    for i,j in zip(x,y):
+                        if  PB.array[i,j]>0.2 and freq_array[j]>820:
+                            ax.scatter3D([freq_array[j]],[float(global_basename[:global_basename.find("_")])], angle_array[i], c=[PB.array[i,j]], vmin=0.2, vmax=1 , cmap='Blues')
+
+        ax.set_xlabel('Frequency, nm')
+        ax.set_ylabel('Energy, mJ')
+        ax.set_zlabel('Angle, mrad')
 
         plt.show(block=False)
 
     def tight_layout():
         plt.tight_layout()
+
+    def save_pkl():
+        freq_class= PB.x_axis_frequency()
+        freq_array=freq_class.get_freq_unrounded()
+        angle_array=PB.get_angles_unrounded()
+        data_frame= pd.DataFrame(PB.array, columns= freq_array, index= angle_array)
+        data_frame.to_pickle(PB.address_of_save_pkl+'/'+os.path.basename(os.path.dirname(PB.global_filename))+".bz2")
 
     def save_data_frame():
         freq_class= PB.x_axis_frequency()
@@ -162,8 +187,8 @@ def do_processing_plot(self, mode):
         f= open(PB.address_of_save_fig+'/'+os.path.basename(os.path.dirname(PB.global_filename))+"_energy.txt", "a")
         f.write(PB.global_basename[:PB.global_basename.find("_")]+"\n")
         f.close()
-        display_results()
-        FAS_3D(coordinates[:, 0],coordinates[:, 1])
+        #display_results()
+        return (coordinates[:, 0],coordinates[:, 1])
 
 
 
@@ -175,6 +200,8 @@ def do_processing_plot(self, mode):
                     'find_max': finding_local_maxima,
                     'tl': tight_layout,
                     'df': save_data_frame,
+                    'pkl': save_pkl,
+                    '3Den': FAS_3D_en,
                     'default': default
                 }
     selected_function = functions.get(mode)

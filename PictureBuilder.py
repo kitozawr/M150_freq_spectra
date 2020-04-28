@@ -37,6 +37,7 @@ address_of_filters= adress_of_home_dir+'Filters'
 address_of_bd_map= adress_of_home_dir+'bd_map.txt'
 address_of_save_fig= adress_of_home_dir+ 'Output pictures'
 address_of_save_df= adress_of_home_dir+ 'Output csv'
+address_of_save_pkl= adress_of_home_dir+ 'Output pkl'
 
 #Параметры внешнего вида спектра
 array = np.array([[1,2,3,4], [5,6,7,8], [9,10,11,12]])
