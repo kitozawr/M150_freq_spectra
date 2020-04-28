@@ -2,12 +2,14 @@ import PictureBuilder as PB
 import matplotlib.pylab as plt
 import numpy as np
 from matplotlib.widgets import RectangleSelector
+import matplotlib.cm as cmx
 from skimage.feature import peak_local_max
 from skimage import data, img_as_float
 from scipy import ndimage as ndi
 import os
 import pandas as pd
 import PySimpleGUI as sg
+from mpl_toolkits.mplot3d import Axes3D
 
 x_corner=0
 y_corner=0
@@ -38,6 +40,21 @@ def do_processing_plot(self, mode):
         #fig.text(0,0,PB.global_basename[:PB.global_basename.find("_")], fontsize=100, backgroundcolor='white', alpha=0.5)
         #plt.savefig(PB.address_of_save_fig+'/'+PB.global_basename.replace('dat','png'))
         #plt.close(fig)
+    def FAS_3D(x, y):
+        freq_class= PB.x_axis_frequency()
+        freq_array=freq_class.get_freq_unrounded()
+
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+        for i,j in zip(x,y):
+            if  PB.array[i,j]>0.2:
+                ax.scatter3D([freq_array[j]],[0], [-i], c=[PB.array[i,j]], vmin=0.2, vmax=1 , cmap='Blues')
+
+        ax.set_xlabel('X Label')
+        ax.set_ylabel('Y Label')
+        ax.set_zlabel('Z Label')
+
+        plt.show(block=False)
 
     def tight_layout():
         plt.tight_layout()
@@ -103,30 +120,33 @@ def do_processing_plot(self, mode):
             y_corner= PB.angle_from
             y_height= (PB.angle_to-PB.angle_from)
         im = PB.array[y_corner:y_corner+y_height,x_corner:x_corner+x_width]
+        im = ndi.uniform_filter(im,20)
+
         # image_max is the dilation of im with a 20*20 structuring element
         # It is used within peak_local_max function
-        image_max = ndi.maximum_filter(im, size=10, mode='constant')
+        image_max = ndi.maximum_filter(im, size=40, mode='constant')
 
         # Comparison between image_max and im to find the coordinates of local maxima
-        coordinates = peak_local_max(im, min_distance=10)
+        coordinates = peak_local_max(im, min_distance=40)
 
         def display_results():
-            plt.close('all')
             nonlocal im, image_max, coordinates
             fig, axes = plt.subplots(3, 1, sharex=True, sharey=True)
             ax = axes.ravel()
 
-            ax[0].imshow(im, cmap=plt.cm.gray)
+            ax[0].imshow(PB.array[y_corner:y_corner+y_height,x_corner:x_corner+x_width], cmap=plt.cm.gray, aspect='auto')
             ax[0].axis('off')
             ax[0].set_title('Original')
 
-            ax[1].imshow(image_max, cmap=plt.cm.gray)
+            ax[1].imshow(image_max, cmap=plt.cm.gray, aspect='auto')
             ax[1].axis('off')
             ax[1].set_title('Maximum filter')
 
-            ax[2].imshow(im, cmap=plt.cm.gray)
+            ax[2].imshow(im, cmap=plt.cm.gray, aspect='auto')
             ax[2].autoscale(False)
-            ax[2].plot(coordinates[:, 1], coordinates[:, 0], 'r.')
+            for x, y in zip(coordinates[:, 0],coordinates[:, 1]):
+                if im[x,y]>0.2:
+                    ax[2].plot(y, x, 'r.')
             ax[2].axis('off')
             ax[2].set_title('Peak local max')
 
@@ -143,6 +163,7 @@ def do_processing_plot(self, mode):
         f.write(PB.global_basename[:PB.global_basename.find("_")]+"\n")
         f.close()
         display_results()
+        FAS_3D(coordinates[:, 0],coordinates[:, 1])
 
 
 

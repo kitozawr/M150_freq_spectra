@@ -25,7 +25,7 @@ menu_def = [['&File', ['&Open     Ctrl-O', '&Save       Ctrl-S', 'E&xit']],
                 ['&Edit', ['&Angle step', '&Freq step', '---', 'Freq &limits', 'Angle limits'], ],
                 ['&Toolbar', ['---', '&Rotate180',
                               '---', 'Print &array', 'Print &parameters', 'Print &filters']],
-                ['&Help', '&About...'], ]
+                ['&Help', '&A bout...'], ]
 # define the window layout
 tab1_layout = [[sg.Canvas(size=(figure_w, figure_h), key='canvas')]]
 
@@ -34,10 +34,10 @@ tab2_layout = [[sg.Output(size=(88, 10))],
                [sg.Text(' ', size=(10,1)), sg.Text('Frequency', size=(11, 1)), sg.InputText(key='-FREQ-'), sg.Button('Set frequency', size=(12, 1))],
                [sg.Text(' ', size=(10,1)), sg.Text('Grating', size=(11, 1)), sg.InputText(key='-GRATE-'), sg.Button('Set grate', size=(12, 1))],
                [sg.Text(' ', size=(10,1)), sg.Text('Rotate', size=(11, 1)), sg.InputText(key='-ROT-'), sg.Button('Set rotate', size=(12, 1))],
-               [sg.Text(' ', size=(10,1)), sg.Text('Scale', size=(11, 1)), sg.InputText(key='-SCALE-'), sg.Button('Set scale', size=(12, 1))],
+               [sg.Text(' ', size=(10,1)), sg.Text('Scale', size=(11, 1)), sg.InputText('lin', key='-SCALE-'), sg.Button('Set scale', size=(12, 1))],
                [sg.Text(' ', size=(10,1)), sg.Text('Title', size=(11, 1)), sg.InputText(key='-TITLE-',focus=True), sg.Button('Set title', size=(12, 1))],
                [sg.Checkbox('Normalize', default=True, key='-NORM-'), sg.Checkbox('Crop image', default=True, key='-PATCH-', size=(8, 1)), sg.Checkbox('Translate into Russian', default=True, key='-RUS-'), sg.Checkbox('Insert title', default=True, key='-INSERTTITLE-')],
-               [sg.Text('Angle shift=', size=(10,1)), sg.T('0',key='_SHIFT_',  size=(11, 1)), sg.Slider((-10,10), key='_SLIDER_', orientation='h', default_value=0, disable_number_display=True, enable_events=True)],
+               [sg.Text('Angle shift=', size=(10,1)), sg.T('0',key='_SHIFT_',  size=(11, 1)), sg.Slider((-100,100), key='_SLIDER_', orientation='h', default_value=0, disable_number_display=True, enable_events=True)],
                [sg.Text('_'  * 89)],
                [sg.Text('Filters:',  size=(10, 1)), sg.Button('Add filter'), sg.Button('Delete last'), sg.Button('Clear all'), sg.Button('Save filters')]]
 
@@ -72,7 +72,7 @@ while True:
     elif event == 'Save' or event == "s:83" or event == 'Save       Ctrl-S':
         do_ask_open_file("")
     elif event == 'Show' or event == "p:80":
-        do_plot('', (values["-NORM-"], not values["-PATCH-"], values['_SLIDER_'], values['-RUS-'], values['-INSERTTITLE-']))
+        do_plot('', (values["-NORM-"], not values["-PATCH-"], values['_SLIDER_']/10, values['-RUS-'], values['-INSERTTITLE-']))
         fig = plt.gcf()
         if fig_canvas_agg:
             # ** IMPORTANT ** Clean up previous drawing before drawing again
@@ -121,7 +121,7 @@ while True:
     elif event == 'Find local max':
         do_processing_plot('', mode='find_max')
     elif event == '_SLIDER_':
-        window['_SHIFT_'].update(values['_SLIDER_'])
+        window['_SHIFT_'].update(values['_SLIDER_']/10)
     elif event == 'About...':
             window.disappear()
             sg.popup(' '*29+'~About this program~', 'Webpage: https://github.com/kitozawr/M150_freq_spectra',
