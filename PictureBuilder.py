@@ -3,7 +3,7 @@ from tkinter import filedialog
 from math import floor, ceil
 from scipy import interpolate
 from remove_bd import *
-from processing import do_processing_plot
+from processing import do_processing_plot, set_energy_limits
 import sys
 import os
 import pickle
@@ -175,14 +175,17 @@ def do_ask_save_file(self, args):
     plt.tight_layout()
     plt.savefig(file_name)
 
-def do_ask_open_file(self, reopen_without_asking_anything=False):
+def do_ask_open_file(self, reopen_without_asking_anything=False, this_filename=None):
     """Открытие GUI окна выбора файла для открытия"""
     global initdir, global_basename, global_filename
     root = Tk()
     root.withdraw()
     root.option_add('*foreground', 'black')
     if (reopen_without_asking_anything):
-        root.filename = global_filename
+        if this_filename:
+            root.filename = this_filename
+        else:
+            root.filename = global_filename
     else:
         root.filename =  filedialog.askopenfilename(initialdir = initdir,title = "Select file",filetypes=(("Data files only", "*.dat"),("PNG files only","*.png"),("All files","*.*")))
     if  (root.filename):
@@ -198,7 +201,8 @@ def do_ask_open_file(self, reopen_without_asking_anything=False):
         elif filename_extension == ".dat":
             do_data_to_array(self='', name_of_file=root.filename)
         basepathname =os.path.basename(os.path.dirname(root.filename))
-        if not reopen_without_asking_anything:
+        open_new_file_with_gui= not reopen_without_asking_anything
+        if this_filename or open_new_file_with_gui:
             do_set_parameters(self='',pathname=os.path.dirname(root.filename), dirname=basepathname)
     root.destroy()
 

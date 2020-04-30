@@ -16,35 +16,18 @@ y_corner=0
 x_width= 1920
 y_height= 1200
 
-def onselect(eclick, erelease):
-    "eclick and erelease are matplotlib events at press and release."
-    print('startposition: (%f, %f)' % (eclick.xdata, eclick.ydata))
-    print('endposition  : (%f, %f)' % (erelease.xdata, erelease.ydata))
-    print('used button  : ', eclick.button)
+energy_min=0
+energy_max=0
 
-def toggle_selector(event):
-    print('Key pressed.')
-    if event.key in ['Q', 'q'] and toggle_selector.RS.active:
-        print('RectangleSelector deactivated.')
-        toggle_selector.RS.set_active(False)
-    if event.key in ['A', 'a'] and not toggle_selector.RS.active:
-        print('RectangleSelector activated.')
-        toggle_selector.RS.set_active(True)
+def set_energy_limits(enfrom, ento):
+    global energy_min, energy_max
+    energy_min=enfrom
+    energy_max=ento
 
 def do_processing_plot(self, mode):
-    def default():
-        #set_parameters(X=0, W=1920, Y=375, H=80)
-        finding_local_maxima()
-        #fig = plt.figure(dpi=100, tight_layout=True, frameon=False, figsize=(1920/100.,1200/100.))
-        #fig.figimage(PB.array, cmap="nipy_spectral")
-        #fig.text(0,0,PB.global_basename[:PB.global_basename.find("_")], fontsize=100, backgroundcolor='white', alpha=0.5)
-        #plt.savefig(PB.address_of_save_fig+'/'+PB.global_basename.replace('dat','png'))
-        #plt.close(fig)
+
     def FAS_3D_en():
         global_filename=PB.global_filename
-        global_basename=PB.global_basename
-        array=PB.array
-        address_of_save_fig=PB.address_of_save_fig
 
         freq_class= PB.x_axis_frequency()
         freq_array=freq_class.get_freq_unrounded()
@@ -56,22 +39,67 @@ def do_processing_plot(self, mode):
         filename_extension = os.path.splitext(global_filename)[-1]
         if (pathname):
             for file in os.listdir(pathname):
-                if file.endswith(filename_extension) and float(file[:file.find("_")])>3:
-                    global_basename= file
-                    if file.endswith(".png"):
-                        PB.do_image_to_array('', pathname+"/"+file)
-                    elif file.endswith(".dat"):
-                        PB.do_data_to_array('', pathname+"/"+file)
-                    PB.preprocessing_plot()
-                    x,y = finding_local_maxima()
-                    for i,j in zip(x,y):
-                        if  PB.array[i,j]>0.2 and freq_array[j]>820:
-                            ax.scatter3D([freq_array[j]],[float(global_basename[:global_basename.find("_")])], angle_array[i], c=[PB.array[i,j]], vmin=0.2, vmax=1 , cmap='Blues')
-
+                if file.endswith(filename_extension):
+                    energy=float(file[:file.find("_")])
+                    if (energy_max>=energy and energy>=energy_min):
+                        if file.endswith(".png"):
+                            PB.do_image_to_array('', pathname+"/"+file)
+                        elif file.endswith(".dat"):
+                            PB.do_data_to_array('', pathname+"/"+file)
+                        PB.preprocessing_plot()
+                        coordinates = peak_local_max(ndi.uniform_filter(PB.array,20), min_distance=40)
+                        center_of_mass_y= int(ndi.measurements.center_of_mass(PB.array)[0])
+                        for i,j in zip(coordinates[:, 0], coordinates[:, 1]):
+                            if  PB.array[i,j]>0.2 and freq_array[j]>820: #820 нм - длина накачки, 0.2 из 1.0 по интенсивности отсечет шум
+                                ax.scatter3D([freq_array[j]],[energy], angle_array[i-center_of_mass_y+600], c=[PB.array[i,j]], vmin=0.2, vmax=1 , cmap='Blues')
         ax.set_xlabel('Frequency, nm')
         ax.set_ylabel('Energy, mJ')
         ax.set_zlabel('Angle, mrad')
+        plt.show(block=False)
 
+    def FAS_3D_dist():
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+
+        filename_extension = ".dat"
+
+        for pathname in ['F:/Филаментация/Спектры/2019/август/2_matched/F3m_AM_no_lambda_360cm_830nm_ns10_mode_f900nm_ns12P_gain20',
+                         'F:/Филаментация/Спектры/2019/август/2_matched/F3m_AM_no_lambda_150cm_815nm_ns10_mode_f850nm_ns12P_gain10',
+                         'F:/Филаментация/Спектры/2019/август/2_matched/F3m_AM_no_lambda_190cm_815nm_ns10_mode_f850nm_ns12_6_gain10',
+                         'F:/Филаментация/Спектры/2019/август/2_matched/F3m_AM_no_lambda_210cm_815nm_ns10_mode_f850nm_ns12_6_gain10',
+                         'F:/Филаментация/Спектры/2019/август/2_matched/F3m_AM_no_lambda_230cm_815nm_ns10_mode_f850nm_ns12_6_gain10',
+                         'F:/Филаментация/Спектры/2019/август/2_matched/F3m_AM_no_lambda_250cm_815nm_ns10_mode_f850nm_ns12P_10old_gain10',
+                         'F:/Филаментация/Спектры/2019/август/2_matched/F3m_AM_no_lambda_260cm_815nm_ns10_mode_f850nm_ns12_10old_gain10_true',
+                         'F:/Филаментация/Спектры/2019/август/2_matched/F3m_AM_no_lambda_270cm_815nm_ns10_mode_f850nm_ns12_10old_gain10_real_true',
+                         'F:/Филаментация/Спектры/2019/август/2_matched/F3m_AM_no_lambda_280cm_815nm_ns10_mode_f850nm_ns12_10old_gain10_real_true',
+                         'F:/Филаментация/Спектры/2019/август/2_matched/F3m_AM_no_lambda_290cm_815nm_ns10_mode_f850nm_ns12P_10old_gain10',
+                         'F:/Филаментация/Спектры/2019/август/2_matched/F3m_AM_no_lambda_300cm_815nm_ns10_mode_f850nm_ns12_6_gain20',
+                         'F:/Филаментация/Спектры/2019/август/2_matched/F3m_AM_no_lambda_310cm_815nm_ns10_mode_f850nm_ns12_gain20',
+                         'F:/Филаментация/Спектры/2019/август/1_matched(using2augcalibration)/F3m_AM_no_lambda_310cm_810nm_ns10_mode_f850nm_ns12_gain20',
+                         'F:/Филаментация/Спектры/2019/август/1_matched(using2augcalibration)/F3m_AM_no_lambda_320cm_810nm_ns10_mode_f850nm_ns12_gain20_true',
+                         'F:/Филаментация/Спектры/2019/август/1_matched(using2augcalibration)/F3m_AM_no_lambda_330cm_810nm_ns10_mode_f850nm_ns12_gain20_true',
+                         'F:/Филаментация/Спектры/2019/август/1_matched(using2augcalibration)/F3m_AM_no_lambda_340cm_810nm_ns10_mode_f850nm_ns12P_gain20',
+                         'F:/Филаментация/Спектры/2019/август/1_matched(using2augcalibration)/F3m_AM_no_lambda_350cm_810nm_ns10_mode_f850nm_ns12P_gain20']:
+            PB.do_ask_open_file('', reopen_without_asking_anything=True, this_filename=pathname+'/'+os.listdir(pathname)[1])
+            PB.do_set_scale('','lin')
+            for file in os.listdir(pathname):
+                if file.endswith(filename_extension):
+                    energy=float(file[:file.find("_")])
+                    if (energy_max>=energy and energy>=energy_min):
+                        PB.do_data_to_array('', pathname+"/"+file)
+                        PB.preprocessing_plot()
+
+                        freq_class= PB.x_axis_frequency()
+                        freq_array=freq_class.get_freq_unrounded()
+                        angle_array=PB.get_angles_unrounded()
+                        coordinates = peak_local_max(ndi.uniform_filter(PB.array,20), min_distance=40)
+                        center_of_mass_y= int(ndi.measurements.center_of_mass(PB.array)[0])
+                        for i,j in zip(coordinates[:, 0], coordinates[:, 1]):
+                            if  PB.array[i,j]>0.2*PB.array.max() and freq_array[j]>820: #820 нм - длина волны накачки, 20% по интенсивности отсечет шум
+                                ax.scatter3D([freq_array[j]],[int(pathname.split('_')[5][0:-2])], angle_array[i-center_of_mass_y+600], c=[PB.array[i,j]], vmin=0.2, vmax=1 , cmap='Blues')
+        ax.set_xlabel('Frequency, nm')
+        ax.set_ylabel('Distance, cm')
+        ax.set_zlabel('Angle, mrad')
         plt.show(block=False)
 
     def tight_layout():
@@ -81,8 +109,9 @@ def do_processing_plot(self, mode):
         freq_class= PB.x_axis_frequency()
         freq_array=freq_class.get_freq_unrounded()
         angle_array=PB.get_angles_unrounded()
+        print(PB.global_filename)
         data_frame= pd.DataFrame(PB.array, columns= freq_array, index= angle_array)
-        data_frame.to_pickle(PB.address_of_save_pkl+'/'+os.path.basename(os.path.dirname(PB.global_filename))+".bz2")
+        data_frame.to_pickle(PB.address_of_save_pkl+'/'+os.path.basename(PB.global_filename)+".bz2")
 
     def save_data_frame():
         freq_class= PB.x_axis_frequency()
@@ -90,46 +119,6 @@ def do_processing_plot(self, mode):
         angle_array=PB.get_angles_unrounded()
         data_frame= pd.DataFrame(PB.array, columns= freq_array, index= angle_array)
         data_frame.to_csv(PB.address_of_save_df+'/'+os.path.basename(os.path.dirname(PB.global_filename))+"_csv.txt", sep=' ')
-
-    def draw_rectangle():
-        global x_corner, x_width, y_corners, y_height
-        rect = patches.Rectangle((x_corner,y_corner),x_width,y_height,linewidth=1,edgecolor='r',facecolor='none')
-        PB.plot.add_patch(rect)
-
-    def save_cropped_image():
-        global x_corner, x_width, y_corner, y_height
-        freq_class= PB.x_axis_frequency()
-        freq_array=freq_class.get_freq_unrounded()
-        subarray=PB.array[y_corner:y_corner+y_height,x_corner:x_corner+x_width]
-        mean_subarray= subarray.mean(axis=0)
-        print (PB.global_basename[:PB.global_basename.find("_")], mean_subarray.max(), freq_array[mean_subarray.argmax()+x_corner])
-        #plt.imsave(address_of_save_fig+'/'+global_basename.replace('dat','jpg'),  subarray)
-        plt.imsave(PB.address_of_save_fig+'/'+PB.global_basename.replace('dat','png'),  PB.array)
-
-        ###Вывод среза в файл
-        f= open(PB.address_of_save_fig+'/'+PB.global_basename.replace('dat','txt'), "a")
-        #np.savetxt(f, mean_subarray, fmt='%1.4f')
-        f.close()
-
-    def draw_a_rectangle_with_a_mouse():
-        toggle_selector.RS = RectangleSelector(PB.plot, onselect, drawtype='line')
-
-    def set_parameters(X=None, W=None, Y=None, H=None):
-        global x_corner, x_width, y_corner, y_height
-        def set_single_par(X, name_of_X, value_of_x=None):
-            print (name_of_X, '= ', X)
-            if (value_of_x is None):
-                buffer=input()
-            else:
-                buffer= value_of_x
-            if (buffer):
-                X= int(buffer)
-            return X
-
-        x_corner= set_single_par(x_corner, 'x_corner', X)
-        y_corner= set_single_par(y_corner, 'y_corner', Y)
-        x_width= set_single_par(x_width, 'x_width', W)
-        y_height= set_single_par(y_height, 'y_height', H)
 
     def finding_local_maxima():
         global x_corner, x_width, y_corner, y_height
@@ -178,31 +167,18 @@ def do_processing_plot(self, mode):
             fig.tight_layout()
             plt.show(block=False)
 
-
-        #f= open(PB.address_of_save_fig+'/'+PB.global_basename.replace('dat','txt'), "a")
-        f= open(PB.address_of_save_fig+'/'+os.path.basename(os.path.dirname(PB.global_filename))+".txt", "a")
-        np.savetxt(f, [[freq[i] for i in (coordinates[:, 1]) if freq[i]>800]], fmt='%1.4f')
-        f.close()
-
-        f= open(PB.address_of_save_fig+'/'+os.path.basename(os.path.dirname(PB.global_filename))+"_energy.txt", "a")
-        f.write(PB.global_basename[:PB.global_basename.find("_")]+"\n")
-        f.close()
-        #display_results()
-        return (coordinates[:, 0],coordinates[:, 1])
+        display_results()
+        return ()
 
 
 
     functions = {
-                    'prob': draw_a_rectangle_with_a_mouse,
-                    'draw': draw_rectangle,
-                    'set_par': set_parameters,
-                    'save_crop': save_cropped_image,
                     'find_max': finding_local_maxima,
                     'tl': tight_layout,
                     'df': save_data_frame,
                     'pkl': save_pkl,
                     '3Den': FAS_3D_en,
-                    'default': default
+                    '3Ddistance': FAS_3D_dist
                 }
     selected_function = functions.get(mode)
     if (selected_function):

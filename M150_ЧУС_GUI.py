@@ -25,7 +25,7 @@ menu_def = [['&File', ['&Open     Ctrl-O', '&Save       Ctrl-S', 'E&xit']],
                 ['&Edit', ['&Angle step', '&Freq step', '---', 'Freq &limits', 'Angle limits'], ],
                 ['&Toolbar', ['---', '&Rotate180',
                               '---', 'Print &array', 'Print &parameters', 'Print &filters']],
-                ['&Help', '&A bout...'], ]
+                ['&Help', '&A bo ut...'], ]
 # define the window layout
 tab1_layout = [[sg.Canvas(size=(figure_w, figure_h), key='canvas')]]
 
@@ -47,8 +47,9 @@ tab3_layout = [[sg.Text('_'  * 89)],
                [sg.ProgressBar(1000, orientation='h', size=(20, 20), key='progbar')],
                [sg.Text('_'  * 89)],
                [sg.Text('Extra options:')],
-               [sg.Button('Save .csv to ./Output'), sg.Button('Find local max'),sg.Button('Local max 3D (in this folder)')],
-               [sg.Button('Save .pkl to ./Output'), sg.Button('Local max 3D (in "Output pkl" folder)')]]
+               [sg.Button('Save .csv to ./Output'), sg.Button('Save .pkl to ./Output')],
+               [sg.Text('Enregy limits (mJ)'), sg.InputText('3', key='-ENERGYFROM-', size=(4, 1)), sg.InputText('22', key='-ENERGYTO-', size=(4, 1))],
+               [sg.Button('Find local max'), sg.Button('Local max 3D (in this folder)'),sg.Button('Local max 3D (in all folders)')]]
 
 layout = [[sg.Menu(menu_def, tearoff=True, pad=(200, 1))],
           [sg.TabGroup([[sg.Tab('Graph', tab1_layout), sg.Tab('Parameters', tab2_layout), sg.Tab('Data manipulation', tab3_layout)]]) ],
@@ -124,7 +125,11 @@ while True:
     elif event == 'Find local max':
         do_processing_plot('', mode='find_max')
     elif event == 'Local max 3D (in this folder)':
+        set_energy_limits(float(values["-ENERGYFROM-"]),float(values["-ENERGYTO-"]))
         do_processing_plot('', mode='3Den')
+    elif event == 'Local max 3D (in all folders)':
+        set_energy_limits(float(values["-ENERGYFROM-"]),float(values["-ENERGYTO-"]))
+        do_processing_plot('', mode='3Ddistance')
     elif event == '_SLIDER_':
         window['_SHIFT_'].update(values['_SLIDER_']/10)
     elif event == 'About...':
