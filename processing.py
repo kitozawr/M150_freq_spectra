@@ -96,7 +96,9 @@ def do_processing_plot(self, mode):
                         center_of_mass_y= int(ndi.measurements.center_of_mass(PB.array)[0])
                         for i,j in zip(coordinates[:, 0], coordinates[:, 1]):
                             if  PB.array[i,j]>0.2*PB.array.max() and freq_array[j]>820: #820 нм - длина волны накачки, 20% по интенсивности отсечет шум
-                                ax.scatter3D([freq_array[j]],[int(pathname.split('_')[5][0:-2])], angle_array[i-center_of_mass_y+600], c=[PB.array[i,j]], vmin=0.2, vmax=1 , cmap='Blues')
+                                #c=0.20, alpha=PB.array[i,j]/3, vmin=0.15, vmax=0.36 ,
+                                norm = plt.Normalize(820, 920)
+                                ax.scatter3D([freq_array[j]],[int(pathname.split('_')[5][0:-2])], angle_array[i-center_of_mass_y+600], c=[freq_array[j]], norm=norm, cmap='nipy_spectral')
         ax.set_xlabel('Frequency, nm')
         ax.set_ylabel('Distance, cm')
         ax.set_zlabel('Angle, mrad')
