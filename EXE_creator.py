@@ -8,6 +8,7 @@ import os
     Make a "Windows os" executable with PyInstaller
 '''
 
+
 def Launcher():
     sg.theme('LightGreen')
 
@@ -75,6 +76,7 @@ def runCommand(cmd, timeout=None):
     out, err = p.communicate()
     p.wait(timeout)
     return (out, err)
+
 
 if __name__ == '__main__':
     Launcher()
