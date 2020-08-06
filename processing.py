@@ -121,18 +121,13 @@ def do_processing_plot(self, mode):
         plt.tight_layout()
 
     def save_pkl():
-        freq_class = PB.x_axis_frequency()
-        freq_array = freq_class.get_freq_unrounded()
-        angle_array = PB.get_angles_unrounded()
         print(PB.global_filename)
-        data_frame = pd.DataFrame(PB.array, columns=freq_array, index=angle_array)
+        data_frame = PB.data_frame
         data_frame.to_pickle(PB.address_of_save_pkl+'/'+os.path.basename(PB.global_filename)+".bz2")
 
     def save_data_frame():
-        freq_class = PB.x_axis_frequency()
-        freq_array = freq_class.get_freq_unrounded()
-        angle_array = PB.get_angles_unrounded()
-        data_frame = pd.DataFrame(PB.array, columns=freq_array, index=angle_array)
+        # пустой датафрейм, который потом заполняется по правилу
+        data_frame = PB.data_frame
         data_frame.to_csv(PB.address_of_save_df+'/' +
                           os.path.basename(os.path.dirname(PB.global_filename))+"_csv.txt", sep=' ')
 

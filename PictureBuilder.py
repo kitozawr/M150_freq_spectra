@@ -9,6 +9,7 @@ import os
 import pickle
 import matplotlib.pylab as plt
 import numpy as np
+import pandas as pd
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import matplotlib.patches as patches
 import PySimpleGUI as sg
@@ -32,9 +33,9 @@ global_filename = None
 
 # Адреса папок
 adress_of_home_dir = './'
-address_of_last_dir_savefile = adress_of_home_dir+'spectrograph_last_dir.pkl'
-address_of_filters = adress_of_home_dir+'Filters'
-address_of_bd_map = adress_of_home_dir+'bd_map.txt'
+address_of_last_dir_savefile = adress_of_home_dir + 'spectrograph_last_dir.pkl'
+address_of_filters = adress_of_home_dir + 'Filters'
+address_of_bd_map = adress_of_home_dir + 'bd_map.txt'
 address_of_save_fig = adress_of_home_dir + 'Output pictures'
 address_of_save_df = adress_of_home_dir + 'Output csv'
 address_of_save_pkl = adress_of_home_dir + 'Output pkl'
@@ -82,21 +83,22 @@ def do_folder_preview(window, args):
             event, values = window.read(timeout=0)
             if event == 'Cancel' or event is None:
                 break
-            update_progbar(window, int(i/len(os.listdir(pathname))*1000))
+            update_progbar(window, int(i / len(os.listdir(pathname)) * 1000))
             i += 1
             if file.endswith(filename_extension):
                 global_basename = file
                 if file.endswith(".png"):
-                    do_image_to_array('', pathname+"/"+file)
+                    do_image_to_array('', pathname + "/" + file)
                 elif file.endswith(".dat"):
-                    do_data_to_array('', pathname+"/"+file)
+                    do_data_to_array('', pathname + "/" + file)
                 preprocessing_plot()
                 fig = plt.figure(dpi=100, tight_layout=True, frameon=False,
-                                 figsize=(1920/100., 1200/100.))
+                                 figsize=(1920 / 100., 1200 / 100.))
                 fig.figimage(array, cmap="nipy_spectral")
                 fig.text(0, 0, global_basename[:global_basename.find("_")],
                          fontsize=100, backgroundcolor='white', alpha=0.5)
-                plt.savefig(address_of_save_fig+'/'+global_basename.replace('dat', 'png'))
+                plt.savefig(address_of_save_fig + '/' +
+                            global_basename.replace('dat', 'png'))
                 plt.close(fig)
 
 
@@ -168,7 +170,7 @@ def do_list_pop_filter(self, number):
 def do_save_filters(self, args):
     """Сохраняет список фильтров в файл spectrograph_filters.pkl в папку загруженного снимка"""
     global filters, path
-    with open(path+'spectrograph_filters.pkl', 'wb') as dir_save_file:
+    with open(path + 'spectrograph_filters.pkl', 'wb') as dir_save_file:
         pickle.dump(filters, dir_save_file)
 
 
@@ -185,7 +187,7 @@ def do_ask_save_file(self, args):
     root.withdraw()
     root.option_add('*foreground', 'black')
     root.filename = filedialog.asksaveasfilename(initialdir="~", filetypes=(("PNG files only", "*.png"), ("All files", "*.*")),
-                                                 initialfile=os.path.basename(os.path.dirname(global_filename))+" "+os.path.split(os.path.splitext(global_filename)[-2])[-1])
+                                                 initialfile=os.path.basename(os.path.dirname(global_filename)) + " " + os.path.split(os.path.splitext(global_filename)[-2])[-1])
     file_name = root.filename
     args.savefig(file_name, dpi=300)
 
@@ -259,12 +261,12 @@ class x_axis_frequency:
 
     def single(self, i):
         global freq
-        return (i-self.image_size+self.offset)*self.dispersion+freq
+        return (i - self.image_size + self.offset) * self.dispersion + freq
 
     def index(self, f):
         global freq
         # f=(i-image_size+offset)*dispersion+freq
-        return round((f-freq)/self.dispersion+self.image_size-self.offset)
+        return round((f - freq) / self.dispersion + self.image_size - self.offset)
 
     def get_freq_unrounded(self):
         return self.freq_array
@@ -277,7 +279,8 @@ def get_angles():
     """Функция из старых файлов Origin"""
     global array, angle_shift
     image_size = array.shape[0]
-    angle = [round(-0.0175*(i-1))+11+angle_shift for i in range(1, image_size+1)]
+    angle = [round(-0.0175 * (i - 1)) + 11 +
+             angle_shift for i in range(1, image_size + 1)]
     return angle
 
 
@@ -285,14 +288,15 @@ def get_angles_unrounded():
     """Функция из старых файлов Origin"""
     global array, angle_shift
     image_size = array.shape[0]
-    angle = [(-0.0175*(i-1))+11+angle_shift for i in range(1, image_size+1)]
+    angle = [(-0.0175 * (i - 1)) + 11 +
+             angle_shift for i in range(1, image_size + 1)]
     return angle
 
 
 def find_nearest(array, value):
     """Index of nearest"""
     array = np.asarray(array)
-    idx = (np.abs(array-value)).argmin()
+    idx = (np.abs(array - value)).argmin()
     return idx
 
 
@@ -331,10 +335,14 @@ def preprocessing_plot():
         do_rotate_image(self='', args=2)
 
     width_of_background_borders = 10
-    border_1 = np.mean(array[:width_of_background_borders, :width_of_background_borders],)
-    border_2 = np.mean(array[-width_of_background_borders:, :width_of_background_borders])
-    border_3 = np.mean(array[:width_of_background_borders, -width_of_background_borders:])
-    border_4 = np.mean(array[-width_of_background_borders:, -width_of_background_borders:])
+    border_1 = np.mean(
+        array[:width_of_background_borders, :width_of_background_borders],)
+    border_2 = np.mean(
+        array[-width_of_background_borders:, :width_of_background_borders])
+    border_3 = np.mean(
+        array[:width_of_background_borders, -width_of_background_borders:])
+    border_4 = np.mean(
+        array[-width_of_background_borders:, -width_of_background_borders:])
     sum_of_borders = [border_1, border_2, border_3, border_4]
     background = np.mean(sum_of_borders)
     background *= 1.02  # округление было вниз
@@ -358,7 +366,7 @@ def preprocessing_plot():
         do_list_push_filter("", name_of_file="900")
 
     for key, value in filters.items():
-        filter_array = np.loadtxt(address_of_filters+'/'+value+'.txt')
+        filter_array = np.loadtxt(address_of_filters + '/' + value + '.txt')
         x = (filter_array[:, 0]).transpose()
         y = (filter_array[:, 1]).transpose()
         filter_function = interpolate.interp1d(x, y, fill_value="extrapolate")
@@ -366,7 +374,7 @@ def preprocessing_plot():
         array_factor *= filter_vector_function(freq_class.get_freq())
     do_list_pop_filter('', len(filters))
     do_list_pop_filter('', len(filters))
-    filters_number = filters_number-2
+    filters_number = filters_number - 2
     np.savetxt('filters.csv', array_factor)
     array_factor_reciprocal = np.reciprocal(array_factor)
     array_factor_rec_diag = np.diag(array_factor_reciprocal)
@@ -374,18 +382,19 @@ def preprocessing_plot():
 
     MAX = array.max()
     if (normalize):
-        array *= 1.0/MAX
+        array *= 1.0 / MAX
     if (scale == 'log'):
         array[array <= 0] = np.exp(-10)
         array = np.log(array)
 
 
 def show_plot():
-    global angle_from, angle_to, freq_from, freq_to, this_array_has_a_plot, plot, graph_title, rot180, freq_step, angle_step, array, scale, grate, filters, filters_number, patch_mode, translate_rus, insert_title
+    global data_frame, angle_from, angle_to, freq_from, freq_to, this_array_has_a_plot, plot, graph_title, rot180, freq_step, angle_step, array, scale, grate, filters, filters_number, patch_mode, translate_rus, insert_title
     fig, ax = plt.subplots()
 
     if (scale == 'log'):
-        im = ax.imshow(array, cmap="nipy_spectral", vmin=-5, vmax=0, aspect='auto')
+        im = ax.imshow(array, cmap="nipy_spectral",
+                       vmin=-5, vmax=0, aspect='auto')
     else:
         im = ax.imshow(array, cmap="nipy_spectral", aspect='auto')
 
@@ -398,7 +407,8 @@ def show_plot():
         cbar.set_ticks(ctks)
         cbar.set_ticklabels(ctkls)
     if translate_rus:
-        cbar.ax.set_ylabel("Относительная интенсивность", rotation=-90, va="bottom")
+        cbar.ax.set_ylabel("Относительная интенсивность",
+                           rotation=-90, va="bottom")
         ax.set_ylabel('Угол, мрад')
         ax.set_xlabel('Длина волны, нм')
     else:
@@ -423,23 +433,24 @@ def show_plot():
         x_from = left
         x_to = right
 
-    min_freq = freq_step*ceil(freq_class.single(left)/freq_step)
-    max_freq = freq_step*floor(freq_class.single(right)/freq_step)
-    new_label = range(min_freq, max_freq+freq_step, freq_step)
+    min_freq = freq_step * ceil(freq_class.single(left) / freq_step)
+    max_freq = freq_step * floor(freq_class.single(right) / freq_step)
+    new_label = range(min_freq, max_freq + freq_step, freq_step)
     new_tick = [freq_class.index(i) for i in new_label]
     ax.set_xticks(new_tick)
     ax.set_xticklabels(new_label)
 
     if not (angle_from or angle_to):
         angle_start = 0
-        angle_finish = len(angle_array)-1
+        angle_finish = len(angle_array) - 1
     else:
         angle_start = angle_from
         angle_finish = angle_to
-    min_angle = angle_step*ceil(angle_array[angle_finish]/angle_step)
-    max_angle = angle_step*floor(angle_array[angle_start]/angle_step)
-    new_label = range(min_angle, max_angle+angle_step, angle_step)
-    new_tick = [find_nearest(angle_array, new_label[i]) for i in range(0, len(new_label))]
+    min_angle = angle_step * ceil(angle_array[angle_finish] / angle_step)
+    max_angle = angle_step * floor(angle_array[angle_start] / angle_step)
+    new_label = range(min_angle, max_angle + angle_step, angle_step)
+    new_tick = [find_nearest(angle_array, new_label[i])
+                for i in range(0, len(new_label))]
     ax.set_yticks(new_tick)
     ax.set_yticklabels(new_label)
     if (angle_from or angle_to):
@@ -447,13 +458,31 @@ def show_plot():
             ax.set_ylim(angle_to, angle_from)
     else:
         angle_from = 0
-        angle_to = len(angle_array)-1
+        angle_to = len(angle_array) - 1
     if (patch_mode):
-        rect = patches.Rectangle((x_from, angle_from), (x_to-x_from),
-                                 (angle_to-angle_from), linewidth=1, edgecolor='r', facecolor='none')
+        rect = patches.Rectangle((x_from, angle_from), (x_to - x_from),
+                                 (angle_to - angle_from), linewidth=1,
+                                 edgecolor='r', facecolor='none')
         ax.add_patch(rect)
     ax.set_facecolor('black')
     fig.tight_layout()
+
+    # complete pandas dataframe for future saving (see processing.py)
+    # freq_class.single # ибо превышает
+    # angle_array[i] # всегда меньше
+    # array: angle_from [пиксель] angle_to [пикс] - от 0 до size()-1 по дефолту
+    #      : x_from [пиксель] x_to [пиксель]
+
+    if (x_from, x_to == ax.get_xlim()):  # это не баг, это фича не трожь
+        x_from = int(x_from + 0.5)
+        x_to = int(x_to - 0.5)
+    data_frame_freq_array = [freq_class.single(i + x_from) for i in range(x_to - x_from + 1)]
+    data_frame_angle_array = get_angles_unrounded()[angle_from:angle_to+1]
+    data_frame_data_array = [[(array[j + angle_from][i + x_from] if ((i + x_from >= 0) and (i + x_from < 1920) and (j + angle_from >= 0)
+                                                                     and (j + angle_from < 1200)) else 0) for i in range(x_to - x_from + 1)] for j in range(angle_to - angle_from + 1)]
+    data_frame = pd.DataFrame(data_frame_data_array,
+                              columns=data_frame_freq_array,
+                              index=data_frame_angle_array)
 
 
 def do_plot(self, args):
@@ -479,28 +508,28 @@ def do_set_freq(self, args):
     """Изменят частоту на указанную set_freq <int>"""
     global freq
     freq = int(args)
-    print(PINKCOLOR+"Frequency "+NORMALCOLOR + str(freq))
+    print(PINKCOLOR + "Frequency " + NORMALCOLOR + str(freq))
 
 
 def do_set_grate(self, args):
     """Изменят решетку на указанную set_grate<int>"""
     global grate
     grate = int(args)
-    print(PINKCOLOR+"Grating "+NORMALCOLOR + str(grate))
+    print(PINKCOLOR + "Grating " + NORMALCOLOR + str(grate))
 
 
 def do_set_scale(self, args):
     """Изменят шкалу на указанную set_scale <lin> or <log>"""
     global scale
     scale = args
-    print(PINKCOLOR+"Scale "+NORMALCOLOR + scale)
+    print(PINKCOLOR + "Scale " + NORMALCOLOR + scale)
 
 
 def do_set_title(self, args):
     """Изменят заголовок на указанный set_title <str>"""
     global graph_title
     graph_title = args
-    print(PINKCOLOR+"Title "+NORMALCOLOR + graph_title)
+    print(PINKCOLOR + "Title " + NORMALCOLOR + graph_title)
 
 
 def do_print_parameters(self, args):
@@ -514,85 +543,85 @@ def do_save_parameters(self, args):
     """Сохраняет параметры осей и заголовка в файл spectrograph_parameters.pkl в папку загруженного снимка"""
     global freq, grate, rot180, scale, graph_title, path
     param_turple = (freq, grate, rot180, scale, graph_title)
-    with open(path+'spectrograph_parameters.pkl', 'wb') as dir_save_file:
+    with open(path + 'spectrograph_parameters.pkl', 'wb') as dir_save_file:
         pickle.dump(param_turple, dir_save_file)
 
 
 def do_set_parameters(self, pathname="", frequency=0, grating=0, dirname=False, rotate=None, scaletype=False, title=None):
     global freq, grate, rot180, scale, graph_title, path, filters, filters_number
-    print(PINKCOLOR+"Введенный/"+GREENCOLOR+'сохраненный/' +
+    print(PINKCOLOR + "Введенный/" + GREENCOLOR + 'сохраненный/' +
           REDCOLOR + "по умолчанию" + NORMALCOLOR + " параметр:")
 
     path = pathname
     if (pathname != ''):
-        path = path+"/"
-    if os.path.isfile(path+'spectrograph_parameters.pkl'):
-        with open(path+'spectrograph_parameters.pkl', 'rb') as dir_save_file:
+        path = path + "/"
+    if os.path.isfile(path + 'spectrograph_parameters.pkl'):
+        with open(path + 'spectrograph_parameters.pkl', 'rb') as dir_save_file:
             param_turple = pickle.load(dir_save_file)
     else:
         param_turple = (None, None, None, None, None)
-    if os.path.isfile(path+'spectrograph_filters.pkl'):
-        with open(path+'spectrograph_filters.pkl', 'rb') as dir_save_file:
+    if os.path.isfile(path + 'spectrograph_filters.pkl'):
+        with open(path + 'spectrograph_filters.pkl', 'rb') as dir_save_file:
             filters = pickle.load(dir_save_file)
             filters_number = len(filters)
     # ---begin freq
     if (frequency):
         freq = frequency
-        print(PINKCOLOR+"Frequency "+NORMALCOLOR + str(freq))
+        print(PINKCOLOR + "Frequency " + NORMALCOLOR + str(freq))
     elif (param_turple[0]):
         freq = param_turple[0]
-        print(GREENCOLOR+"Frequency "+NORMALCOLOR + str(freq))
+        print(GREENCOLOR + "Frequency " + NORMALCOLOR + str(freq))
     else:
         freq = 800
-        print(REDCOLOR+"Frequency "+NORMALCOLOR + str(freq))
+        print(REDCOLOR + "Frequency " + NORMALCOLOR + str(freq))
     # ---begin grate
     if (grating):
         grate = grating
-        print(PINKCOLOR+"Grating "+NORMALCOLOR + str(grate))
+        print(PINKCOLOR + "Grating " + NORMALCOLOR + str(grate))
     elif (param_turple[1]):
         grate = param_turple[1]
-        print(GREENCOLOR+"Grating "+NORMALCOLOR + str(grate))
+        print(GREENCOLOR + "Grating " + NORMALCOLOR + str(grate))
     else:
         grate = 300
-        print(REDCOLOR+"Grating "+NORMALCOLOR + str(grate))
+        print(REDCOLOR + "Grating " + NORMALCOLOR + str(grate))
     # ---begin rot (завязан на наличие частоты)
     if (rotate is not None):
         rot180 = rotate
         if (rotate):
-            print(PINKCOLOR+"Rotate "+NORMALCOLOR + 'True')
+            print(PINKCOLOR + "Rotate " + NORMALCOLOR + 'True')
         else:
-            print(PINKCOLOR+"Rotate "+NORMALCOLOR + 'False')
+            print(PINKCOLOR + "Rotate " + NORMALCOLOR + 'False')
     elif (param_turple[0]):
         rot180 = param_turple[2]
         if (param_turple[2]):
-            print(GREENCOLOR+"Rotate "+NORMALCOLOR + 'True')
+            print(GREENCOLOR + "Rotate " + NORMALCOLOR + 'True')
         else:
-            print(GREENCOLOR+"Rotate "+NORMALCOLOR + 'False')
+            print(GREENCOLOR + "Rotate " + NORMALCOLOR + 'False')
     else:
         rot180 = True
-        print(REDCOLOR+"Rotate "+NORMALCOLOR + 'True')
+        print(REDCOLOR + "Rotate " + NORMALCOLOR + 'True')
     # ---begin scale
     if (scaletype):
         scale = scaletype
-        print(PINKCOLOR+"Scale "+NORMALCOLOR + scale)
+        print(PINKCOLOR + "Scale " + NORMALCOLOR + scale)
     elif (param_turple[3]):
         scale = param_turple[3]
-        print(GREENCOLOR+"Scale "+NORMALCOLOR + scale)
+        print(GREENCOLOR + "Scale " + NORMALCOLOR + scale)
     else:
         scale = 'lin'
-        print(REDCOLOR+"Scale "+NORMALCOLOR + scale)
+        print(REDCOLOR + "Scale " + NORMALCOLOR + scale)
     # ---begin title
     if (title):
         graph_title = title
-        print(PINKCOLOR+"Title "+NORMALCOLOR + graph_title)
+        print(PINKCOLOR + "Title " + NORMALCOLOR + graph_title)
     elif (dirname and dirname != '..'):
         graph_title = dirname
-        print(PINKCOLOR+"Title (dir) "+NORMALCOLOR + graph_title)
+        print(PINKCOLOR + "Title (dir) " + NORMALCOLOR + graph_title)
     elif (param_turple[4]):
         graph_title = param_turple[4]
-        print(GREENCOLOR+"Title "+NORMALCOLOR+graph_title)
+        print(GREENCOLOR + "Title " + NORMALCOLOR + graph_title)
     else:
         graph_title = "Частотно-угловой спектр филамента"
-        print(REDCOLOR+"Title "+NORMALCOLOR + grath_title)
+        print(REDCOLOR + "Title " + NORMALCOLOR + grath_title)
     # ---begin filters
     do_print_filters(self='', args='')
