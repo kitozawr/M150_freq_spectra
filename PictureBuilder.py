@@ -1,7 +1,7 @@
 from tkinter import *
 from tkinter import filedialog
 from math import floor, ceil
-from scipy import interpolate
+from scipy import interpolate, ndimage
 from remove_bd import *
 from processing import do_processing_plot, set_energy_limits
 import sys
@@ -56,6 +56,7 @@ this_array_has_a_plot = False
 normalize = True
 patch_mode = False
 angle_shift = 0
+angle_rotate = 0
 translate_rus = True
 insert_title = True
 
@@ -279,8 +280,8 @@ def get_angles():
     """Функция из старых файлов Origin"""
     global array, angle_shift
     image_size = array.shape[0]
-    angle = [round(-0.0175 * (i - 1)) + 11 +
-             angle_shift for i in range(1, image_size + 1)]
+    angle = [round(-0.0175 * (i - 1) + 11 +
+                   angle_shift) for i in range(1, image_size + 1)]
     return angle
 
 
@@ -288,7 +289,7 @@ def get_angles_unrounded():
     """Функция из старых файлов Origin"""
     global array, angle_shift
     image_size = array.shape[0]
-    angle = [(-0.0175 * (i - 1)) + 11 +
+    angle = [-0.0175 * (i - 1) + 11 +
              angle_shift for i in range(1, image_size + 1)]
     return angle
 
@@ -322,7 +323,7 @@ def do_set_rotate(self, args):
 
 
 def preprocessing_plot():
-    global freq_from, freq_to, this_array_has_a_plot, plot, graph_title, rot180, freq_step, angle_step, array, scale, grate, filters, filters_number, normalize
+    global angle_rotate, freq_from, freq_to, this_array_has_a_plot, plot, graph_title, rot180, freq_step, angle_step, array, scale, grate, filters, filters_number, normalize
 
     if (this_array_has_a_plot):
         do_ask_open_file(self='', reopen_without_asking_anything=True)
@@ -350,6 +351,8 @@ def preprocessing_plot():
         background = background.astype('>i2')
     array -= background
     array[array < 0] = 0
+
+    array = ndimage.rotate(array, angle_rotate, reshape=False)
 
     angle_array = get_angles()
     freq_class = x_axis_frequency()
@@ -487,8 +490,9 @@ def show_plot():
 
 def do_plot(self, args):
     """Открывает окно с графиком и текущими настройками в неблокирующем режиме"""
-    global normalize, patch_mode, angle_shift, translate_rus, insert_title
-    normalize, patch_mode, angle_shift, translate_rus, insert_title = args
+    global normalize, patch_mode, angle_shift, angle_rotate, translate_rus, insert_title
+
+    normalize, patch_mode, angle_shift, angle_rotate, translate_rus, insert_title = args
     preprocessing_plot()
     show_plot()
 

@@ -48,8 +48,11 @@ tab2_layout = [[sg.Output(size=(88, 10))],
                    key='-TITLE-', focus=True), sg.Button('Set title', size=(12, 1))],
                [sg.Checkbox('Normalize', default=True, key='-NORM-'), sg.Checkbox('Crop image', default=True, key='-PATCH-', size=(8, 1)),
                 sg.Checkbox('Translate into Russian', default=True, key='-RUS-'), sg.Checkbox('Insert title', default=True, key='-INSERTTITLE-')],
-               [sg.Text('Angle shift=', size=(10, 1)), sg.T('0', key='_SHIFT_',  size=(11, 1)), sg.Slider(
-                   (-100, 100), key='_SLIDER_', orientation='h', default_value=0, disable_number_display=True, enable_events=True)],
+               [sg.Text('Angle shift=', size=(10, 1)), sg.T('0', key='_SHIFT_',  size=(11, 1)),
+                sg.Slider((-100, 100), key='_SLIDER_', orientation='h', default_value=0,
+                          disable_number_display=True, enable_events=True)],
+               [sg.Text('Rotate degr=', size=(10, 1)), sg.T('0', key='_ANGLE_',  size=(11, 1)),
+                sg.Slider(range=(-50, 50), key='_SLIDERV_', orientation='h', default_value=0, tick_interval=0.1, disable_number_display=True, enable_events=True)],
                [sg.Text('_' * 89)],
                [sg.Text('Filters:',  size=(10, 1)), sg.Button('Add filter'), sg.Button('Delete last'), sg.Button('Clear all'), sg.Button('Save filters')]]
 
@@ -88,7 +91,8 @@ while True:
         do_ask_save_file("", fig)
     elif event == 'Show' or event == "p:80":
         do_plot('', (values["-NORM-"], not values["-PATCH-"],
-                     values['_SLIDER_']/10, values['-RUS-'], values['-INSERTTITLE-']))
+                     values['_SLIDER_']/10., values['_SLIDERV_']/10.,
+                     values['-RUS-'], values['-INSERTTITLE-']))
         fig = plt.gcf()
         if fig_canvas_agg:
             # ** IMPORTANT ** Clean up previous drawing before drawing again
@@ -118,10 +122,10 @@ while True:
         do_set_freq_step('', sg.popup_get_text('Выбор шага оси графика: <int>'))
     elif event == 'Freq limits':
         do_set_freq_limits('', sg.popup_get_text(
-            'Выбор пределов построения графика от [нм] до [нм] через пробел'))
+            'Выбор пределов построения графика от [нм] до [нм] через пробел. Сброс при вводе 0 0'))
     elif event == 'Angle limits':
         do_set_angle_limits('', sg.popup_get_text(
-            'Выбор пределов построения графика от [пиксель] до [пиксель] через пробел'))
+            'Выбор пределов построения графика от [пиксель] до [пиксель] через пробел от 0 до 1199. Сброс при вводе 0 0'))
     elif event == 'Print filters':
         do_print_filters('', '')
     elif event == 'Add filter':
@@ -148,6 +152,8 @@ while True:
         do_processing_plot('', mode='3Ddistance')
     elif event == '_SLIDER_':
         window['_SHIFT_'].update(values['_SLIDER_']/10)
+    elif event == '_SLIDERV_':
+        window['_ANGLE_'].update(values['_SLIDERV_']/10.0)
     elif event == 'About...':
         window.disappear()
         sg.popup(' '*29+'~About this program~', 'Webpage: https://github.com/kitozawr/M150_freq_spectra',
