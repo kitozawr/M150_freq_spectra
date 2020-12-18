@@ -93,14 +93,12 @@ def do_folder_preview(window, args):
                 elif file.endswith(".dat"):
                     do_data_to_array('', pathname + "/" + file)
                 preprocessing_plot()
-                fig = plt.figure(dpi=100, tight_layout=True, frameon=False,
-                                 figsize=(1920 / 100., 1200 / 100.))
-                fig.figimage(array, cmap="nipy_spectral")
-                fig.text(0, 0, global_basename[:global_basename.find("_")],
-                         fontsize=100, backgroundcolor='white', alpha=0.5)
+                show_plot()
+                fig = plt.gcf()
+                fig.suptitle(global_basename[:global_basename.find("_")],
+                             y=1, ha='right', fontsize=12)
                 plt.savefig(address_of_save_fig + '/' +
-                            global_basename.replace('dat', 'png'))
-                plt.close(fig)
+                            global_basename.replace('dat', 'png'), dpi=300)
 
 
 def do_set_freq_limits(self, f):
@@ -188,7 +186,7 @@ def do_ask_save_file(self, args):
     root.withdraw()
     root.option_add('*foreground', 'black')
     root.filename = filedialog.asksaveasfilename(initialdir="~", filetypes=(("PNG files only", "*.png"), ("All files", "*.*")),
-                                                 initialfile=os.path.basename(os.path.dirname(global_filename)) + " " + os.path.split(os.path.splitext(global_filename)[-2])[-1])
+                                                 initialfile=os.path.basename(os.path.dirname(global_filename)) + " " + os.path.split(os.path.splitext(global_filename)[-2])[-1]+".png")
     file_name = root.filename
     args.savefig(file_name, dpi=300)
 
