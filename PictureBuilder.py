@@ -59,6 +59,7 @@ angle_shift = 0
 angle_rotate = 0
 translate_rus = True
 insert_title = True
+show_pixels = False
 
 if os.path.isfile(address_of_last_dir_savefile):
     with open(address_of_last_dir_savefile, 'rb') as dir_save_file:
@@ -73,7 +74,7 @@ def update_progbar(window, i):
 
 
 def do_folder_preview(window, args):
-    global global_filename, global_basename, array, address_of_save_fig
+    global data_frame, global_filename, global_basename, array, address_of_save_fig, address_of_save_df
     """Для всех файлов папки, где в последний раз был открыт файл, идет переконвертация (учитывая битые области, фильтры, поворот) в png.
     Работает с последним открытым типом файлов. """
     pathname = os.path.dirname(global_filename)
@@ -92,13 +93,18 @@ def do_folder_preview(window, args):
                     do_image_to_array('', pathname + "/" + file)
                 elif file.endswith(".dat"):
                     do_data_to_array('', pathname + "/" + file)
+                plt.close()
                 preprocessing_plot()
                 show_plot()
                 fig = plt.gcf()
                 fig.suptitle(global_basename[:global_basename.find("_")],
                              y=1, ha='right', fontsize=12)
-                plt.savefig(address_of_save_fig + '/' +
-                            global_basename.replace('dat', 'png'), dpi=300)
+                if (args):
+                    data_frame.to_csv(address_of_save_df+'/' +
+                                      global_basename.replace('.dat', '_csv.txt'), sep=' ')
+                else:
+                    plt.savefig(address_of_save_fig + '/' +
+                                global_basename.replace('dat', 'png'), dpi=300)
 
 
 def do_set_freq_limits(self, f):
@@ -321,7 +327,7 @@ def do_set_rotate(self, args):
 
 
 def preprocessing_plot():
-    global angle_rotate, freq_from, freq_to, this_array_has_a_plot, plot, graph_title, rot180, freq_step, angle_step, array, scale, grate, filters, filters_number, normalize
+    global data_frame, angle_rotate, freq_from, freq_to, this_array_has_a_plot, plot, graph_title, rot180, freq_step, angle_step, array, scale, grate, filters, filters_number, normalize
 
     if (this_array_has_a_plot):
         do_ask_open_file(self='', reopen_without_asking_anything=True)
@@ -390,7 +396,7 @@ def preprocessing_plot():
 
 
 def show_plot():
-    global data_frame, angle_from, angle_to, freq_from, freq_to, this_array_has_a_plot, plot, graph_title, rot180, freq_step, angle_step, array, scale, grate, filters, filters_number, patch_mode, translate_rus, insert_title
+    global show_pixels, data_frame, angle_from, angle_to, freq_from, freq_to, this_array_has_a_plot, plot, graph_title, rot180, freq_step, angle_step, array, scale, grate, filters, filters_number, patch_mode, translate_rus, insert_title
     fig, ax = plt.subplots()
 
     if (scale == 'log'):
@@ -452,8 +458,9 @@ def show_plot():
     new_label = range(min_angle, max_angle + angle_step, angle_step)
     new_tick = [find_nearest(angle_array, new_label[i])
                 for i in range(0, len(new_label))]
-    ax.set_yticks(new_tick)
-    ax.set_yticklabels(new_label)
+    if not show_pixels:
+        ax.set_yticks(new_tick)
+        ax.set_yticklabels(new_label)
     if (angle_from or angle_to):
         if not patch_mode:
             ax.set_ylim(angle_to, angle_from)
@@ -488,9 +495,10 @@ def show_plot():
 
 def do_plot(self, args):
     """Открывает окно с графиком и текущими настройками в неблокирующем режиме"""
-    global normalize, patch_mode, angle_shift, angle_rotate, translate_rus, insert_title
+    global normalize, patch_mode, angle_shift, angle_rotate, translate_rus, insert_title, show_pixels
 
-    normalize, patch_mode, angle_shift, angle_rotate, translate_rus, insert_title = args
+    normalize, patch_mode, angle_shift, angle_rotate, translate_rus, insert_title, show_pixels = args
+    plt.close()
     preprocessing_plot()
     show_plot()
 

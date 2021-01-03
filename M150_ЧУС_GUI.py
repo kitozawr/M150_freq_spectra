@@ -30,7 +30,7 @@ menu_def = [['&File', ['&Open     Ctrl-O', '&Save       Ctrl-S', 'E&xit']],
             ['&Edit', ['&Angle step', '&Freq step', '---', 'Freq &limits', 'Angle limits'], ],
             ['&Toolbar', ['---', '&Rotate180',
                           '---', 'Print &array', 'Print &parameters', 'Print &filters']],
-            ['&Help', '&A bo ut...'], ]
+            ['&Help', '&About...'], ]
 # define the window layout
 tab1_layout = [[sg.Canvas(size=(figure_w, figure_h), key='canvas')]]
 
@@ -53,12 +53,14 @@ tab2_layout = [[sg.Output(size=(88, 10))],
                           disable_number_display=True, enable_events=True)],
                [sg.Text('Rotate degr=', size=(10, 1)), sg.T('0', key='_ANGLE_',  size=(11, 1)),
                 sg.Slider(range=(-50, 50), key='_SLIDERV_', orientation='h', default_value=0, tick_interval=0.1, disable_number_display=True, enable_events=True)],
+               [sg.Checkbox('Convert angles back to pixels', default=False, key='-PIXELS-')],
                [sg.Text('_' * 89)],
                [sg.Text('Filters:',  size=(10, 1)), sg.Button('Add filter'), sg.Button('Delete last'), sg.Button('Clear all'), sg.Button('Save filters')]]
 
 tab3_layout = [[sg.Text('_' * 89)],
-               [sg.Text('Save preview of images in the folder to ./Output (take a few minutes)')],
-               [sg.Button('Image Preview'), sg.Cancel()],
+               [sg.Text('Save preview of the folder to ./Output (take a few minutes)')],
+               [sg.Button('Folder Preview'), sg.Checkbox(
+                   'Save as .csv', default=False, key='-CSV-'), sg.Cancel()],
                [sg.ProgressBar(1000, orientation='h', size=(20, 20), key='progbar')],
                [sg.Text('_' * 89)],
                [sg.Text('Extra options:')],
@@ -92,7 +94,8 @@ while True:
     elif event == 'Show' or event == "p:80":
         do_plot('', (values["-NORM-"], not values["-PATCH-"],
                      values['_SLIDER_']/10., values['_SLIDERV_']/10.,
-                     values['-RUS-'], values['-INSERTTITLE-']))
+                     values['-RUS-'], values['-INSERTTITLE-'],
+                     values['-PIXELS-']))
         fig = plt.gcf()
         if fig_canvas_agg:
             # ** IMPORTANT ** Clean up previous drawing before drawing again
@@ -136,8 +139,8 @@ while True:
         do_list_clear_filters('', '')
     elif event == 'Save filters':
         do_save_filters('', '')
-    elif event == 'Image Preview':
-        do_folder_preview(window, '')
+    elif event == 'Folder Preview':
+        do_folder_preview(window, values["-CSV-"])
     elif event == 'Save .csv to ./Output':
         do_processing_plot('', mode='df')
     elif event == 'Save .pkl to ./Output':
