@@ -124,11 +124,17 @@ while True:
     elif event == 'Freq step':
         do_set_freq_step('', sg.popup_get_text('Выбор шага оси графика: <int>'))
     elif event == 'Freq limits':
-        do_set_freq_limits('', sg.popup_get_text(
-            'Выбор пределов построения графика от [нм] до [нм] через пробел. Сброс при вводе 0 0'))
+        from PictureBuilder import freq_from, freq_to
+        input_text = sg.popup_get_text('Выбор пределов построения графика от [нм] до [нм] через пробел. Сброс при вводе 0 0\n' +
+                                       'Текущее значение ' + str(freq_from)+" "+str(freq_to))
+        if (input_text and input_text.split()[0].isdigit() and input_text.split()[1].isdigit()):
+            do_set_freq_limits('', input_text)
     elif event == 'Angle limits':
-        do_set_angle_limits('', sg.popup_get_text(
-            'Выбор пределов построения графика от [пиксель] до [пиксель] через пробел от 0 до 1199. Сброс при вводе 0 0'))
+        from PictureBuilder import angle_from, angle_to
+        input_text = sg.popup_get_text('Выбор пределов построения графика от[пиксель] до[пиксель] через пробел от 0 до 1199.\n' +
+                                       'Сброс при вводе 0 0. Текущее значение ' + str(angle_from)+" "+str(angle_to))
+        if (input_text and input_text.split()[0].isdigit() and input_text.split()[1].isdigit()):
+            do_set_angle_limits('', input_text)
     elif event == 'Print filters':
         do_print_filters('', '')
     elif event == 'Add filter':
