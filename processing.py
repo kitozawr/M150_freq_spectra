@@ -27,6 +27,80 @@ def set_energy_limits(enfrom, ento):
 
 
 def do_processing_plot(self, mode):
+    def energy_full_vs_energy_in_red():
+        global_filename = PB.global_filename
+
+        freq_class = PB.x_axis_frequency()
+        freq_array = freq_class.get_freq_unrounded()
+        angle_array = PB.get_angles_unrounded()
+
+        pathname = os.path.dirname(global_filename)
+        filename_extension = os.path.splitext(global_filename)[-1]
+        # решаем в 2 захода: сначала среднее по поддиапазонам 1мдж,
+        # потом считаем отклонение от среднего
+        max_energy_mj = 30
+        energy_index = np.arange(1, max_energy_mj + 1)
+        number_of_samples = np.zeros(max_energy_mj)
+        sum_of_energy = np.zeros(max_energy_mj)
+        mean_of_energy = np.zeros(max_energy_mj)
+        sd_of_energy = np.zeros(max_energy_mj)
+        sum_of_energy_red = np.zeros(max_energy_mj)
+        mean_of_energy_red = np.zeros(max_energy_mj)
+        sd_of_energy_red = np.zeros(max_energy_mj)
+
+        if (pathname):
+            for file in os.listdir(pathname):
+                if file.endswith(filename_extension):
+                    energy = float(file[:file.find("_")])
+                    if (energy > 1):
+                        if file.endswith(".png"):
+                            PB.do_image_to_array('', pathname+"/"+file)
+                        elif file.endswith(".dat"):
+                            PB.do_data_to_array('', pathname+"/"+file)
+                            PB.preprocessing_plot()
+                            subarray = PB.array[PB.angle_from:PB.angle_to, :]
+                            number_of_samples[round(energy)] = number_of_samples[round(energy)] + 1
+                            sum_of_energy[round(energy)] = sum_of_energy[round(
+                                energy)] + subarray.sum()
+                            x_from = freq_class.index(820)
+                            subarray = PB.array[PB.angle_from:PB.angle_to, x_from:]
+                            sum_of_energy_red[round(energy)] = sum_of_energy_red[round(
+                                energy)] + subarray.sum()
+        mean_of_energy = np.divide(sum_of_energy, number_of_samples)
+        mean_of_energy_red = np.divide(sum_of_energy_red, number_of_samples)
+
+        if (pathname):
+            for file in os.listdir(pathname):
+                if file.endswith(filename_extension):
+                    energy = float(file[:file.find("_")])
+                    if (energy > 1):
+                        if file.endswith(".png"):
+                            PB.do_image_to_array('', pathname+"/"+file)
+                        elif file.endswith(".dat"):
+                            PB.do_data_to_array('', pathname+"/"+file)
+                            PB.preprocessing_plot()
+                            subarray = PB.array[PB.angle_from:PB.angle_to, :]
+                            sd_of_energy[round(energy)] = sd_of_energy[round(
+                                energy)] + np.power(subarray.sum()-mean_of_energy[round(energy)], 2)
+                            x_from = freq_class.index(820)
+                            subarray = PB.array[PB.angle_from:PB.angle_to, x_from:]
+                            sd_of_energy_red[round(energy)] = sd_of_energy_red[round(
+                                energy)] + np.power(subarray.sum()-mean_of_energy_red[round(energy)], 2)
+        # sd = sqrt(sum[(xi-<x>)^2]/(n-1))
+        number_of_samples[number_of_samples > 0] = number_of_samples[number_of_samples > 0] - 1
+        sd_of_energy = np.sqrt(np.divide(sd_of_energy, number_of_samples))
+        sd_of_energy_red = np.sqrt(np.divide(sd_of_energy_red, number_of_samples))
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+        ax.bar(energy_index, mean_of_energy, yerr=sd_of_energy,
+               error_kw={'ecolor': '0.1', 'capsize': 6}, label='Full')
+        ax.bar(energy_index, mean_of_energy_red,  yerr=sd_of_energy_red,
+               error_kw={'ecolor': 'tab:purple', 'capsize': 6}, label='Red')
+        ax.set_xlabel('Энергия в импульсе, мДж')
+        ax.set_ylabel('Энергия на оси')
+        plt.title('Энерговклад в красное крыло')
+        plt.legend(loc=2)
+        fig.show()
 
     def FAS_3D_en():
         global_filename = PB.global_filename
@@ -188,7 +262,8 @@ def do_processing_plot(self, mode):
         'df': save_data_frame,
         'pkl': save_pkl,
         '3Den': FAS_3D_en,
-        '3Ddistance': FAS_3D_dist
+        '3Ddistance': FAS_3D_dist,
+        'energy_red': energy_full_vs_energy_in_red
     }
     selected_function = functions.get(mode)
     if (selected_function):

@@ -67,7 +67,9 @@ tab3_layout = [[sg.Text('_' * 89)],
                [sg.Button('Save .csv to ./Output'), sg.Button('Save .pkl to ./Output')],
                [sg.Text('Enregy limits (mJ)'), sg.InputText('3', key='-ENERGYFROM-',
                                                             size=(4, 1)), sg.InputText('22', key='-ENERGYTO-', size=(4, 1))],
-               [sg.Button('Find local max'), sg.Button('Local max 3D (in this folder)'), sg.Button('Local max 3D (in all folders)')]]
+               [sg.Button('Find local max'), sg.Button('Local max 3D (in this folder)'),
+                sg.Button('Local max 3D (in all folders)')],
+               [sg.Button('Energy histogram')]]
 
 layout = [[sg.Menu(menu_def, tearoff=True, pad=(200, 1))],
           [sg.TabGroup([[sg.Tab('Graph', tab1_layout), sg.Tab(
@@ -159,6 +161,8 @@ while True:
     elif event == 'Local max 3D (in all folders)':
         set_energy_limits(float(values["-ENERGYFROM-"]), float(values["-ENERGYTO-"]))
         do_processing_plot('', mode='3Ddistance')
+    elif event == 'Energy histogram':
+        do_processing_plot('', mode='energy_red')
     elif event == '_SLIDER_':
         window['_SHIFT_'].update(values['_SLIDER_']/10)
     elif event == '_SLIDERV_':
