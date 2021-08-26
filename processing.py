@@ -62,7 +62,7 @@ def do_processing_plot(self, mode):
                             number_of_samples[round(energy)] = number_of_samples[round(energy)] + 1
                             sum_of_energy[round(energy)] = sum_of_energy[round(
                                 energy)] + subarray.sum()
-                            x_from = freq_class.index(820)
+                            x_from = freq_class.index(840)
                             subarray = PB.array[PB.angle_from:PB.angle_to, x_from:]
                             sum_of_energy_red[round(energy)] = sum_of_energy_red[round(
                                 energy)] + subarray.sum()
@@ -87,15 +87,40 @@ def do_processing_plot(self, mode):
                             sd_of_energy_red[round(energy)] = sd_of_energy_red[round(
                                 energy)] + np.power(subarray.sum()-mean_of_energy_red[round(energy)], 2)
         # sd = sqrt(sum[(xi-<x>)^2]/(n-1))
-        number_of_samples[number_of_samples > 0] = number_of_samples[number_of_samples > 0] - 1
-        sd_of_energy = np.sqrt(np.divide(sd_of_energy, number_of_samples))
-        sd_of_energy_red = np.sqrt(np.divide(sd_of_energy_red, number_of_samples))
+        number_of_samples_minus_1 = np.zeros(max_energy_mj)
+        number_of_samples_minus_1[number_of_samples >
+                                  1] = number_of_samples[number_of_samples > 1] - 1
+        number_of_samples_minus_1[number_of_samples <=
+                                  1] = number_of_samples[number_of_samples <= 1]
+        sd_of_energy = np.sqrt(np.divide(sd_of_energy, number_of_samples_minus_1))
+        sd_of_energy_red = np.sqrt(np.divide(sd_of_energy_red, number_of_samples_minus_1))
         fig = plt.figure()
         ax = fig.add_subplot(111)
+        '''
         ax.bar(energy_index, mean_of_energy, yerr=sd_of_energy,
                error_kw={'ecolor': '0.1', 'capsize': 6}, label='Full')
         ax.bar(energy_index, mean_of_energy_red,  yerr=sd_of_energy_red,
                error_kw={'ecolor': 'tab:purple', 'capsize': 6}, label='Red')
+        '''
+        energy_ratio = np.zeros(max_energy_mj)
+        energy_ratio[number_of_samples > 1] = np.divide(
+            mean_of_energy_red, mean_of_energy)[number_of_samples > 1]
+        div = np.divide(energy_ratio * sd_of_energy, mean_of_energy)
+        div_red = np.divide(energy_ratio * sd_of_energy_red, mean_of_energy_red)
+        # print(div)
+        # print("!\n")
+        # print(div_red)
+        # print("!\n")
+        # print(np.divide(sd_of_energy, mean_of_energy))
+        # print("!\n")
+        energy_ratio_error = (np.sqrt(np.power(div, 2) +
+                                      np.power(div_red, 2)))
+        # print(energy_ratio_error)
+        ax.errorbar(energy_index[number_of_samples > 1],
+                    energy_ratio[number_of_samples > 1],
+                    yerr=energy_ratio_error[number_of_samples > 1],
+                    fmt='o', capsize=10)
+        ax.set_ylim(0, 1)
         ax.set_xlabel('Энергия в импульсе, мДж')
         ax.set_ylabel('Энергия на оси')
         plt.title('Энерговклад в красное крыло')
@@ -245,7 +270,7 @@ def do_processing_plot(self, mode):
             ax[1].imshow(im,  cmap="nipy_spectral", aspect='auto')
             ax[1].autoscale(False)
             for x, y in zip(coordinates[:, 0], coordinates[:, 1]):
-                if im[x, y] > 0.2:
+                if im[x, y] > 0.01:
                     ax[1].plot(y, x, 'w.')
             ax[1].axis('off')
             ax[1].set_title('Peak local max')

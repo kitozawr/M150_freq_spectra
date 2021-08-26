@@ -382,10 +382,10 @@ def preprocessing_plot():
     do_list_pop_filter('', len(filters))
     do_list_pop_filter('', len(filters))
     filters_number = filters_number - 2
-    np.savetxt('filters.csv', array_factor)
+    #np.savetxt('filters.csv', array_factor)
     array_factor_reciprocal = np.reciprocal(array_factor)
-    array_factor_rec_diag = np.diag(array_factor_reciprocal)
-    array = array @ array_factor_rec_diag
+    #array_factor_rec_diag = np.diag(array_factor_reciprocal)
+    array = array * array_factor_reciprocal
 
     MAX = array.max()
     if (normalize):

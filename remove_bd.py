@@ -11,13 +11,15 @@ def read_bd_map(bd_map_file):
 
 	f=open(bd_map_file)
 	lines = f.readlines()
-	#print("Reading breakdown map...")
-	#if lines[0] == "Muliple hot spots\n":
-		#print("File start is OK.")
+	print("Reading breakdown map...")
+	if lines[0] == "Muliple hot spots\n":
+		print("File start is OK.")
 	single_start_num = lines.index("Separate hot spots\n")
 	bd_mult = np.genfromtxt(bd_map_file, skip_header=1, max_rows=single_start_num-1, dtype = 'uint16')
 	bd_single = np.genfromtxt(bd_map_file, skip_header=single_start_num+1, dtype = 'uint16')
-	#print("Bd map has been successfully read.")
+	if len(bd_single.shape) == 1:
+		bd_single.reshape(bd_single.shape[0],-1)
+	print("Bd map has been successfully read.")
 
 	return (bd_mult, bd_single)
 
@@ -45,9 +47,14 @@ def apply_bd_map(data, bd_mult, bd_single):
 					k1 -= 1
 				j_bottum = int(bd_mult[k1+1,0])-1 #Ближайшая непробитая точка снизу.
 				# Коэффициенты линейной аппроксимации.
-				A = (float(data[j_top,i]) - float(data[j_bottum,i]))/(float(j_top) - float(j_bottum))
-				B = float(data[j_bottum,i]) - A*j_bottum
-				data[j_bottum+1:j_top,i] = np.around(A*np.arange(j_bottum+1, j_top)+B)
+				if j_top >= bd_mult.shape[0]: #Пробой на верхнем краю ПЗС.
+					data[j_bottum:j_top,i] = np.around(np.ones(j_top - j_bottum)*np.mean(data[j_bottum-1:j_bottum-4,i]))
+				elif j_bottum <= 0:
+					data[j_bottum+1:j_top+1,i] = np.around(np.ones(j_top - j_bottum)*np.mean(data[j_top+1:j_top+4,i]))
+				else:
+					A = (float(data[j_top,i]) - float(data[j_bottum,i]))/(float(j_top) - float(j_bottum))
+					B = float(data[j_bottum,i]) - A*j_bottum
+					data[j_bottum+1:j_top,i] = np.around(A*np.arange(j_bottum+1, j_top)+B)
 
 	#Для одиночных пробоев.
 	if bd_single.size != 0:
