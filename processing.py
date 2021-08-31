@@ -126,6 +126,24 @@ def do_processing_plot(self, mode):
         plt.title('Энерговклад в красное крыло')
         plt.legend(loc=2)
         fig.show()
+    def average():
+        PB_sum = np.zeros_like(PB.array)
+        global_filename = PB.global_filename
+        pathname = os.path.dirname(global_filename)
+        filename_extension = os.path.splitext(global_filename)[-1]
+        if (pathname):
+            for file in os.listdir(pathname):
+                if file.endswith(filename_extension):
+                    if file.endswith(".png"):
+                        PB.do_image_to_array('', pathname + "/" + file)
+                    elif file.endswith(".dat"):
+                        PB.do_data_to_array('', pathname + "/" + file)
+                    PB.preprocessing_plot()
+                    PB_sum = PB_sum + PB.array
+        PB.array = PB_sum
+        print("OK")
+        PB.show_plot()
+
 
     def FAS_3D_en():
         global_filename = PB.global_filename
@@ -270,8 +288,9 @@ def do_processing_plot(self, mode):
             ax[1].imshow(im,  cmap="nipy_spectral", aspect='auto')
             ax[1].autoscale(False)
             for x, y in zip(coordinates[:, 0], coordinates[:, 1]):
-                if im[x, y] > 0.01:
+                if im[x, y] > 0.001:
                     ax[1].plot(y, x, 'w.')
+                    print(freq[x_corner+x])
             ax[1].axis('off')
             ax[1].set_title('Peak local max')
 
@@ -288,7 +307,8 @@ def do_processing_plot(self, mode):
         'pkl': save_pkl,
         '3Den': FAS_3D_en,
         '3Ddistance': FAS_3D_dist,
-        'energy_red': energy_full_vs_energy_in_red
+        'energy_red': energy_full_vs_energy_in_red,
+        'Average of folder': average
     }
     selected_function = functions.get(mode)
     if (selected_function):

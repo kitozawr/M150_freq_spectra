@@ -69,7 +69,7 @@ tab3_layout = [[sg.Text('_' * 89)],
                                                             size=(4, 1)), sg.InputText('22', key='-ENERGYTO-', size=(4, 1))],
                [sg.Button('Find local max'), sg.Button('Local max 3D (in this folder)'),
                 sg.Button('Local max 3D (in all folders)')],
-               [sg.Button('Energy contribution')]]
+               [sg.Button('Energy contribution'), sg.Button('Average of folder')]]
 
 layout = [[sg.Menu(menu_def, tearoff=True, pad=(200, 1))],
           [sg.TabGroup([[sg.Tab('Graph', tab1_layout), sg.Tab(
@@ -163,6 +163,13 @@ while True:
         do_processing_plot('', mode='3Ddistance')
     elif event == 'Energy contribution':
         do_processing_plot('', mode='energy_red')
+    elif event == 'Average of folder':
+        do_processing_plot('', mode='Average of folder')
+        fig = plt.gcf()
+        if fig_canvas_agg:
+            # ** IMPORTANT ** Clean up previous drawing before drawing again
+            delete_figure_agg(fig_canvas_agg)
+        fig_canvas_agg = draw_figure(window['canvas'].TKCanvas, fig)
     elif event == '_SLIDER_':
         window['_SHIFT_'].update(values['_SLIDER_']/10)
     elif event == '_SLIDERV_':
