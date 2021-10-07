@@ -60,6 +60,7 @@ angle_rotate = 0
 translate_rus = True
 insert_title = True
 show_pixels = False
+new_calibration = False
 
 if os.path.isfile(address_of_last_dir_savefile):
     with open(address_of_last_dir_savefile, 'rb') as dir_save_file:
@@ -248,7 +249,7 @@ class x_axis_frequency:
     def __init__(self):
         """Функция uз старых файлов Origin"""
         global array
-        global grate, array, freq
+        global grate, array, freq, new_calibration
         self.image_size = array.shape[1]
         if (grate == 300):
             self.offset = 1001
@@ -261,6 +262,8 @@ class x_axis_frequency:
             self.dispersion = 0.03656
         else:
             print("Wrong grate")
+        if new_calibration:
+            self.offset = self.offset - 300
 
         self.freq_array = [self.single(i) for i in range(0, self.image_size)]
 
@@ -327,7 +330,7 @@ def do_set_rotate(self, args):
 
 
 def preprocessing_plot():
-    global data_frame, angle_rotate, freq_from, freq_to, this_array_has_a_plot, plot, graph_title, rot180, freq_step, angle_step, array, scale, grate, filters, filters_number, normalize
+    global data_frame, angle_rotate,  angle_from, angle_to, freq_from, freq_to, this_array_has_a_plot, plot, graph_title, rot180, freq_step, angle_step, array, scale, grate, filters, filters_number, normalize
 
     if (this_array_has_a_plot):
         do_ask_open_file(self='', reopen_without_asking_anything=True)
@@ -338,6 +341,7 @@ def preprocessing_plot():
     apply_bd_map(array, bd_mult, bd_single)
     if (rot180):
         do_rotate_image(self='', args=2)
+    array = ndimage.rotate(array, angle_rotate, reshape=False)
 
     width_of_background_borders = 10
     border_1 = np.mean(
@@ -350,13 +354,11 @@ def preprocessing_plot():
         array[-width_of_background_borders:, -width_of_background_borders:])
     sum_of_borders = [border_1, border_2, border_3, border_4]
     background = np.mean(sum_of_borders)
-    background *= 1.02  # округление было вниз
+    background *= 1 #1.02  # округление было вниз
     if (array[1, 1] > 1):  # -> dat -> type '>i2'
         background = background.astype('>i2')
     array -= background
     array[array < 0] = 0
-
-    array = ndimage.rotate(array, angle_rotate, reshape=False)
 
     angle_array = get_angles()
     freq_class = x_axis_frequency()
@@ -387,10 +389,19 @@ def preprocessing_plot():
     #array_factor_rec_diag = np.diag(array_factor_reciprocal)
     array = array * array_factor_reciprocal
 
-    MAX = array.max()
-    if (normalize):
+    if (freq_from and freq_to):  # обрезка изображения
+        x_from = freq_class.index(freq_from)
+        x_to = freq_class.index(freq_to)
+    else:
+        x_from = 0
+        x_to = array.shape[1]-1
+    if (angle_to==0):
+        angle_to = len(angle_array) - 1
+    MAX = np.max([[(array[j + angle_from][i + x_from] if ((i + x_from >= 0) and (i + x_from < 1920) and (j + angle_from >= 0)
+                                                                     and (j + angle_from < 1200)) else 0) for i in range(x_to - x_from + 1)] for j in range(angle_to - angle_from + 1)])
+    if normalize:
         array *= 1.0 / MAX
-    if (scale == 'log'):
+    if scale == 'log':
         array[array <= 0] = np.exp(-10)
         array = np.log(array)
 
@@ -399,10 +410,12 @@ def show_plot():
     global show_pixels, data_frame, angle_from, angle_to, freq_from, freq_to, this_array_has_a_plot, plot, graph_title, rot180, freq_step, angle_step, array, scale, grate, filters, filters_number, patch_mode, translate_rus, insert_title
     fig, ax = plt.subplots()
 
-    if (scale == 'log'):
+    if scale == 'log':
         im = ax.imshow(array, cmap="nipy_spectral",
                        vmin=-5, vmax=0, aspect='auto')
-    else:
+    elif normalize:
+        im = ax.imshow(array,vmin=0, vmax=1, cmap="nipy_spectral", aspect='auto')
+    else :
         im = ax.imshow(array, cmap="nipy_spectral", aspect='auto')
 
     divider = make_axes_locatable(ax)
@@ -495,9 +508,9 @@ def show_plot():
 
 def do_plot(self, args):
     """Открывает окно с графиком и текущими настройками в неблокирующем режиме"""
-    global normalize, patch_mode, angle_shift, angle_rotate, translate_rus, insert_title, show_pixels
+    global normalize, patch_mode, angle_shift, angle_rotate, translate_rus, insert_title, show_pixels, new_calibration
 
-    normalize, patch_mode, angle_shift, angle_rotate, translate_rus, insert_title, show_pixels = args
+    normalize, patch_mode, angle_shift, angle_rotate, translate_rus, insert_title, show_pixels, new_calibration = args
     plt.close()
     preprocessing_plot()
     show_plot()

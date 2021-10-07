@@ -47,7 +47,8 @@ tab2_layout = [[sg.Output(size=(88, 10))],
                [sg.Text(' ', size=(10, 1)), sg.Text('Title', size=(11, 1)), sg.InputText(
                    key='-TITLE-', focus=True), sg.Button('Set title', size=(12, 1))],
                [sg.Checkbox('Normalize', default=True, key='-NORM-'), sg.Checkbox('Crop image', default=True, key='-PATCH-', size=(8, 1)),
-                sg.Checkbox('Translate into Russian', default=True, key='-RUS-'), sg.Checkbox('Insert title', default=True, key='-INSERTTITLE-')],
+                sg.Checkbox('Translate into Russian', default=True, key='-RUS-'), sg.Checkbox('Insert title', default=True, key='-INSERTTITLE-'),
+                sg.Checkbox('New calibration', default=False, key='-NEWCALIBRATION-')],
                [sg.Text('Angle shift=', size=(10, 1)), sg.T('0', key='_SHIFT_',  size=(11, 1)),
                 sg.Slider((-100, 100), key='_SLIDER_', orientation='h', default_value=0,
                           disable_number_display=True, enable_events=True)],
@@ -82,7 +83,6 @@ window = sg.Window('Частотно-угловой спектр', layout, final
 # add the plot to the window
 fig_canvas_agg = None
 fig = None
-# add user functions
 
 # The GUI Event Loop
 while True:
@@ -97,7 +97,7 @@ while True:
         do_plot('', (values["-NORM-"], not values["-PATCH-"],
                      values['_SLIDER_']/10., values['_SLIDERV_']/10.,
                      values['-RUS-'], values['-INSERTTITLE-'],
-                     values['-PIXELS-']))
+                     values['-PIXELS-'], values['-NEWCALIBRATION-']))
         fig = plt.gcf()
         if fig_canvas_agg:
             # ** IMPORTANT ** Clean up previous drawing before drawing again
