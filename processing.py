@@ -1,15 +1,9 @@
 import PictureBuilder as PB
 import matplotlib.pylab as plt
 import numpy as np
-from matplotlib.widgets import RectangleSelector
-import matplotlib.cm as cmx
 from skimage.feature import peak_local_max
-from skimage import data, img_as_float
 from scipy import ndimage as ndi
 import os
-import pandas as pd
-import PySimpleGUI as sg
-from mpl_toolkits.mplot3d import Axes3D
 
 x_corner = 0
 y_corner = 0
@@ -247,15 +241,13 @@ def do_processing_plot(self, mode):
         plt.tight_layout()
 
     def save_pkl():
-        print(PB.global_filename)
         data_frame = PB.data_frame
-        data_frame.to_pickle(PB.address_of_save_pkl + '/' + os.path.basename(PB.global_filename) + ".bz2")
+        np.save(PB.address_of_save_pkl + '/' + os.path.basename(PB.global_filename) + ".npy", data_frame)
 
     def save_data_frame():
-        # пустой датафрейм, который потом заполняется по правилу
         data_frame = PB.data_frame
-        data_frame.to_csv(PB.address_of_save_df + '/' +
-                          os.path.basename(os.path.dirname(PB.global_filename)) + "_csv.txt", sep=' ')
+        np.savetxt(PB.address_of_save_df + '/' +
+                          os.path.basename(os.path.dirname(PB.global_filename)) + "_csv.txt", data_frame, delimiter=' ')
 
     def finding_local_maxima(show=True):
         global x_corner, x_width, y_corner, y_height

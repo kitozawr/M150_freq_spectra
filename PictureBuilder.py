@@ -3,16 +3,13 @@ from tkinter import filedialog
 from math import floor, ceil
 from scipy import interpolate, ndimage
 from remove_bd import *
-from processing import do_processing_plot, set_energy_limits
 import sys
 import os
 import pickle
 import matplotlib.pylab as plt
 import numpy as np
-import pandas as pd
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import matplotlib.patches as patches
-import PySimpleGUI as sg
 
 REDCOLOR = '# '
 GREENCOLOR = '№ '
@@ -75,13 +72,24 @@ def update_progbar(window, i):
 
 
 def do_folder_preview(window, args):
-    global data_frame, global_filename, global_basename, array, address_of_save_fig, address_of_save_df
+    global data_frame, global_filename, global_basename, array, address_of_save_fig, address_of_save_df, graph_title
     """Для всех файлов папки, где в последний раз был открыт файл, идет переконвертация (учитывая битые области, фильтры, поворот) в png.
     Работает с последним открытым типом файлов. """
     pathname = os.path.dirname(global_filename)
+    print(pathname)
     filename_extension = os.path.splitext(global_filename)[-1]
     i = 1
     if (pathname):
+
+        try:
+            os.makedirs(address_of_save_df + '/' + graph_title) if (args) else os.makedirs(
+                address_of_save_fig + '/' + graph_title)
+        except FileExistsError:
+            pass  # already exists
+        file = open(address_of_save_df + '/' + graph_title + '/settings.txt', "w") if (args) else open(
+            address_of_save_fig + '/' + graph_title + '/settings.txt', "w")
+        file.write(repr(globals()))
+        file.close()
         for file in os.listdir(pathname):
             event, values = window.read(timeout=0)
             if event == 'Cancel' or event is None:
@@ -89,23 +97,26 @@ def do_folder_preview(window, args):
             update_progbar(window, int(i / len(os.listdir(pathname)) * 1000))
             i += 1
             if file.endswith(filename_extension):
-                global_basename = file
-                if file.endswith(".png"):
-                    do_image_to_array('', pathname + "/" + file)
-                elif file.endswith(".dat"):
-                    do_data_to_array('', pathname + "/" + file)
-                plt.close()
-                preprocessing_plot()
-                show_plot()
-                fig = plt.gcf()
-                fig.suptitle(global_basename[:global_basename.find("_")],
-                             y=1, ha='right', fontsize=12)
-                if (args):
-                    data_frame.to_csv(address_of_save_df+'/' +
-                                      global_basename.replace('.dat', '_csv.txt'), sep=' ')
-                else:
-                    plt.savefig(address_of_save_fig + '/' +
-                                global_basename.replace('dat', 'png'), dpi=300)
+                try:
+                    global_basename = file
+                    if file.endswith(".png"):
+                        do_image_to_array('', pathname + "/" + file)
+                    elif file.endswith(".dat"):
+                        do_data_to_array('', pathname + "/" + file)
+                    plt.close()
+                    preprocessing_plot()
+                    show_plot()
+                    fig = plt.gcf()
+                    fig.suptitle(global_basename[:global_basename.find("_")],
+                                 y=1, ha='right', fontsize=12)
+                    if (args):
+                        np.savetxt(address_of_save_df + '/' + graph_title + '/' +
+                                   global_basename.replace('.dat', '_csv.txt'), data_frame, delimiter=' ')
+                    else:
+                        plt.savefig(address_of_save_fig + '/' + graph_title + '/' +
+                                    global_basename.replace('dat', 'png'), dpi=300)
+                except:
+                    print("An exception occurred")
 
 
 def do_set_freq_limits(self, f):
@@ -192,8 +203,11 @@ def do_ask_save_file(self, args):
     root = Tk()
     root.withdraw()
     root.option_add('*foreground', 'black')
-    root.filename = filedialog.asksaveasfilename(initialdir="~", filetypes=(("PNG files only", "*.png"), ("All files", "*.*")),
-                                                 initialfile=os.path.basename(os.path.dirname(global_filename)) + " " + os.path.split(os.path.splitext(global_filename)[-2])[-1]+".png")
+    root.filename = filedialog.asksaveasfilename(initialdir="~",
+                                                 filetypes=(("PNG files only", "*.png"), ("All files", "*.*")),
+                                                 initialfile=os.path.basename(os.path.dirname(global_filename)) + " " +
+                                                             os.path.split(os.path.splitext(global_filename)[-2])[
+                                                                 -1] + ".png")
     file_name = root.filename
     args.savefig(file_name, dpi=300)
 
@@ -263,7 +277,7 @@ class x_axis_frequency:
         else:
             print("Wrong grate")
         if new_calibration:
-            self.offset = self.offset - 300
+            self.offset = self.offset + 58
 
         self.freq_array = [self.single(i) for i in range(0, self.image_size)]
 
@@ -330,7 +344,7 @@ def do_set_rotate(self, args):
 
 
 def preprocessing_plot():
-    global data_frame, angle_rotate,  angle_from, angle_to, freq_from, freq_to, this_array_has_a_plot, plot, graph_title, rot180, freq_step, angle_step, array, scale, grate, filters, filters_number, normalize
+    global data_frame, angle_rotate, angle_from, angle_to, freq_from, freq_to, this_array_has_a_plot, plot, graph_title, rot180, freq_step, angle_step, array, scale, grate, filters, filters_number, normalize
 
     if (this_array_has_a_plot):
         do_ask_open_file(self='', reopen_without_asking_anything=True)
@@ -341,11 +355,10 @@ def preprocessing_plot():
     apply_bd_map(array, bd_mult, bd_single)
     if (rot180):
         do_rotate_image(self='', args=2)
-    array = ndimage.rotate(array, angle_rotate, reshape=False)
 
     width_of_background_borders = 10
     border_1 = np.mean(
-        array[:width_of_background_borders, :width_of_background_borders],)
+        array[:width_of_background_borders, :width_of_background_borders], )
     border_2 = np.mean(
         array[-width_of_background_borders:, :width_of_background_borders])
     border_3 = np.mean(
@@ -354,9 +367,11 @@ def preprocessing_plot():
         array[-width_of_background_borders:, -width_of_background_borders:])
     sum_of_borders = [border_1, border_2, border_3, border_4]
     background = np.mean(sum_of_borders)
-    background *= 1 #1.02  # округление было вниз
+    background *= 1  # 1.02  # округление было вниз
     if (array[1, 1] > 1):  # -> dat -> type '>i2'
         background = background.astype('>i2')
+
+    array = ndimage.rotate(array, angle_rotate, reshape=False)
     array -= background
     array[array < 0] = 0
 
@@ -384,9 +399,8 @@ def preprocessing_plot():
     do_list_pop_filter('', len(filters))
     do_list_pop_filter('', len(filters))
     filters_number = filters_number - 2
-    #np.savetxt('filters.csv', array_factor)
+    # np.savetxt('filters.csv', array_factor)
     array_factor_reciprocal = np.reciprocal(array_factor)
-    #array_factor_rec_diag = np.diag(array_factor_reciprocal)
     array = array * array_factor_reciprocal
 
     if (freq_from and freq_to):  # обрезка изображения
@@ -394,11 +408,10 @@ def preprocessing_plot():
         x_to = freq_class.index(freq_to)
     else:
         x_from = 0
-        x_to = array.shape[1]-1
-    if (angle_to==0):
+        x_to = array.shape[1] - 1
+    if (angle_to == 0):
         angle_to = len(angle_array) - 1
-    MAX = np.max([[(array[j + angle_from][i + x_from] if ((i + x_from >= 0) and (i + x_from < 1920) and (j + angle_from >= 0)
-                                                                     and (j + angle_from < 1200)) else 0) for i in range(x_to - x_from + 1)] for j in range(angle_to - angle_from + 1)])
+    MAX = np.max(array[angle_from:angle_to, x_from if x_from >= 0 else 0:x_to if x_to < 1920 else 1920 - 1])
     if normalize:
         array *= 1.0 / MAX
     if scale == 'log':
@@ -414,8 +427,8 @@ def show_plot():
         im = ax.imshow(array, cmap="nipy_spectral",
                        vmin=-5, vmax=0, aspect='auto')
     elif normalize:
-        im = ax.imshow(array,vmin=0, vmax=1, cmap="nipy_spectral", aspect='auto')
-    else :
+        im = ax.imshow(array, vmin=0, vmax=1, cmap="nipy_spectral", aspect='auto')
+    else:
         im = ax.imshow(array, cmap="nipy_spectral", aspect='auto')
 
     divider = make_axes_locatable(ax)
@@ -488,22 +501,26 @@ def show_plot():
     ax.set_facecolor('black')
     fig.tight_layout()
 
-    # complete pandas dataframe for future saving (see processing.py)
-    # freq_class.single # ибо превышает
-    # angle_array[i] # всегда меньше
+    # complete dataframe-array for future saving (see processing.py)
+    # freq_class.single # ибо значения частоты могут превывись пределы исходного массива
+    # angle_array[i] # углы же всегда меньше или равны исходных пределов
     # array: angle_from [пиксель] angle_to [пикс] - от 0 до size()-1 по дефолту
     #      : x_from [пиксель] x_to [пиксель]
 
     if (x_from, x_to == ax.get_xlim()):  # это не баг, это фича не трожь
         x_from = int(x_from + 0.5)
         x_to = int(x_to - 0.5)
+
     data_frame_freq_array = [freq_class.single(i + x_from) for i in range(x_to - x_from + 1)]
-    data_frame_angle_array = get_angles_unrounded()[angle_from:angle_to+1]
-    data_frame_data_array = [[(array[j + angle_from][i + x_from] if ((i + x_from >= 0) and (i + x_from < 1920) and (j + angle_from >= 0)
-                                                                     and (j + angle_from < 1200)) else 0) for i in range(x_to - x_from + 1)] for j in range(angle_to - angle_from + 1)]
-    data_frame = pd.DataFrame(data_frame_data_array,
-                              columns=data_frame_freq_array,
-                              index=data_frame_angle_array)
+    data_frame_angle_array = get_angles_unrounded()[angle_from:angle_to + 1]
+    data_frame = np.full((len(data_frame_angle_array) + 1, len(data_frame_freq_array) + 1),
+                         0. if scale == 'lin' else -10.)
+    data_frame[0, 0] = 0
+    data_frame[0, 1:] = data_frame_freq_array
+    data_frame[1:, 0] = data_frame_angle_array
+    data_frame[1:,
+    1 + 0 if x_from >= 0 else 1 + np.abs(x_from):1 + x_to - x_from + 1 if x_to < 1920 else 1920 - x_from] = \
+        array[angle_from:angle_to + 1, x_from if x_from >= 0 else 0:x_to + 1 if x_to <= 1920 else 1920]
 
 
 def do_plot(self, args):
@@ -570,7 +587,8 @@ def do_save_parameters(self, args):
         pickle.dump(param_turple, dir_save_file)
 
 
-def do_set_parameters(self, pathname="", frequency=0, grating=0, dirname=False, rotate=None, scaletype=False, title=None):
+def do_set_parameters(self, pathname="", frequency=0, grating=0, dirname=False, rotate=None, scaletype=False,
+                      title=None):
     global freq, grate, rot180, scale, graph_title, path, filters, filters_number
     print(PINKCOLOR + "Введенный/" + GREENCOLOR + 'сохраненный/' +
           REDCOLOR + "по умолчанию" + NORMALCOLOR + " параметр:")
