@@ -145,7 +145,7 @@ def do_folder_preview(window, args, dictionary_of_match):
                         fig.savefig(address_of_save_fig + '/' + graph_title + '/' +
                                     global_basename[0:-4] + "_mode.png", dpi=300)
                         plt.close()
-                    if (values['-MODE-'] and dictionary_of_match.get(i) and dictionary_of_match.get(i)[0] > 0) and (values['-ENERGY-'] and dictionary_of_match.get(i) and dictionary_of_match.get(i)[1] > 0):
+                    if (values['-MODE-'] and values['-ENERGY-'] and dictionary_of_match.get(i) and dictionary_of_match.get(i)[0] > 0 and dictionary_of_match.get(i)[1] > 0):
                         print(array[angle_from:angle_to + 1, 0: 1900].mean(), data.mean(), np.amax(wf0)*m+c)
                 except:
                     print("An exception occurred")

@@ -347,17 +347,21 @@ def make_dictionary(pathname):
             index_mode = index_mode + 1
         cond1 = np.abs(time_pb[i] - time_mode[index_mode]) < 0.05
         cond2 = np.abs(time_pb[i] - time_en[index_en]) < 0.05
-        if cond1 and not cond2:
-            index_en = -1
-        elif not cond1 and cond2:
+        if not cond1:
             index_mode = -1
+        if not cond2:
+            index_en = -1
         dictionary[i] = (index_mode, index_en)
         # print(i, index_mode, index_en)
         # print(str(i) + " " + str(np.argmin(np.abs(time_en[i] - time_mode)))+" "+str(np.argmin(np.abs(time_en[i] - time_pb))))
     # best_shift_en = 0
     # best_match_value = 0
     # for i in range(0, len(time_pb)):
-    #     print(i, dictionary[i][1])
+    #     index_en = np.argmin(np.abs(time_pb[i] - time_en))
+    #     index_mode = np.argmin(np.abs(time_pb[i] - time_mode))
+    #     if time_mode[index_mode] < time_pb[i]:
+    #         index_mode = index_mode + 1
+    #     print(i, dictionary[i][0], dictionary[i][1], time_pb[i], time_mode[index_mode], time_en[index_en])
     # for shift_en in range(-4, 5):
     #     level_en_for_pb = [level_en[dictionary.get(i)[1]+shift_en] for i in range(len(level_pb))]
     #     slope, intercept, r_value, p_value, std_err = stats.linregress(level_pb[:-1], level_en_for_pb[:-1])
