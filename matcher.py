@@ -1,18 +1,10 @@
 import os
 import struct
-import PictureBuilder as PB
+
 import matplotlib.pylab as plt
 import numpy as np
 import pywt
-from scipy import interpolate
 
-pathname_kalibr = 'G:/Мой диск/Филаментация/Энергии/сентябрь/25/mask_efficiency_before_mask_lambda0_ns10tr_8t\TestFolder'
-
-pathname = 'G:/Мой диск/Филаментация/Спектры/сентябрь/25/F4m_N2_0_75bar_AM_no_lambda_53cm_ns3_mode_ns10_8_3_2_slit_100_GR300_800_nm_gain_1_en_10tr_8t_7'
-#pathname = os.path.dirname(PB.global_filename)
-pathname_en = pathname.replace('Спектры','Энергии')
-pathname_ac = pathname.replace('Спектры','Моды')
-pathname_pb = pathname
 
 def circular_convolve_d(h_t, v_j_1, j):
     '''
@@ -58,12 +50,13 @@ def read_bin_new_Rudnev(filepath):
     with open(filepath, "rb") as binary_file:
         # Read the whole file at once
         data = binary_file.read()
-    T = (data[4:19]).decode('UTF-8')
+    E = struct.unpack('>l', data[0:4])[0]
+    T = (struct.unpack('15s', data[4:19])[0]).decode('UTF-8')
     dt = struct.unpack('>d', data[19:27])[0]
-    ch0_on = data[27]  # whether channel 0 was on
+    ch0_on = struct.unpack('?', data[27:28])[0]  # whether channel 0 was on
     dV0 = struct.unpack('>d', data[28:36])[0]  # [mV/bit]
     ch0_adj = struct.unpack('>d', data[36:44])[0]  # channel0 adjustment
-    ch1_on = data[44]  # whether channel 1 was on
+    ch1_on = struct.unpack('?', data[44:45])[0]  # whether channel 1 was on
     dV1 = struct.unpack('>d', data[45:53])[0]  # [mV/bit]
     ch1_adj = struct.unpack('>d', data[53:61])[0]  # channel0 adjustment
 
@@ -81,20 +74,24 @@ def read_bin_new_Rudnev(filepath):
         ch_num = 2
         ch0_arr = waveform[0::2] * dV0
         ch1_arr = waveform[1::2] * dV1
+        ch0_arr[1] = 0
         return (T, dt, ch0_arr, ch1_arr)
     elif ch0_on:
         ch_num = 0
         ch0_arr = waveform * dV0
         ch1_arr = ch0_arr
+        ch0_arr[1] = 0
         return (T, dt, ch0_arr, ch1_arr)
     elif ch1_on:
         ch_num = 1
-        ch1_arr = waveform
+        ch1_arr = waveform * dV1
         ch0_arr = ch1_arr
+        ch0_arr[1] = 0
         return (T, dt, ch0_arr, ch1_arr)
     else:
         print("ERROR. Unknown channels configuration in read_bin_new_Rudnev in data_proc_basics_script")
         return ("ERROR")
+
 
 
 def calc_lum_time(string):
@@ -169,7 +166,6 @@ def make_file_list_to_compare_new_program(pathname_ac, ext):
     filenames_ac_info = [f[1] for f in filenames_ac_info_ext]
 
     return filenames_ac_times, filenames_ac_info
-
 
 
 def subtract_plane(data, quite=False):
@@ -264,135 +260,119 @@ def find_kalibr(pathname_kalibr):
             time_en[i] = float(time_en_list[-1]) + 60 * float(time_en_list[-2]) + 3600.0 * float(time_en_list[-3])
             energies_0[i] = np.amax(wf0)
             energies_1[i] = np.amax(wf1)
-    plt.scatter(energies_0[time_en > 0], energies_1[time_en > 0] * 100)
     A = np.vstack([energies_0[time_en > 0], np.ones(len(energies_0[time_en > 0]))]).T
     m, c = np.linalg.lstsq(A, energies_1[time_en > 0] * 100, rcond=None)[0]
-    print(m, c)
+    #print(m, c)
+    plt.scatter(energies_0[time_en > 0], energies_1[time_en > 0] * 100)
+    plt.title(pathname_kalibr)
+    import PictureBuilder as PB
+    filename = PB.address_of_save_fig + '/kalibr'+ '.png'
+    plt.savefig(filename, dpi=100)
     # plt.plot(time_en[time_en > 0], )
-    plt.show()
+    # plt.show()
     return (m, c)
 
-def make_dictionary:
-    time_en = np.zeros(len(os.listdir(pathname_en)))
-    energies_0 = np.zeros(len(os.listdir(pathname_en)))
-    energies_1 = np.zeros(len(os.listdir(pathname_en)))
-    for i, filename_en_inner in enumerate(os.listdir(pathname_en)):
-        if filename_en_inner.endswith(".bin"):
-            T, dt, wf0, wf1 = read_bin_new_Rudnev(pathname_en + "/" + filename_en_inner)
-            time_en_list = T.replace(',', '.').split("-")
-            time_en[i] = float(time_en_list[-1]) + 60 * float(time_en_list[-2]) + 3600.0 * float(time_en_list[-3])
-            energies_0[i] = np.amax(wf0)
-            energies_1[i] = np.amax(wf1)
+
+def make_dictionary(pathname):
+    pathname_en = pathname.replace('Спектры', 'Энергии')
+    if (os.path.exists(pathname_en+'/TestFolder')):
+        pathname_en = pathname_en+'/TestFolder'
+    # print(pathname_en)
+    pathname_ac = pathname.replace('Спектры', 'Моды')
+    pathname_pb = pathname
+    if os.path.exists(pathname_en):
+        time_en = np.zeros(len(os.listdir(pathname_en)))
+        # level_en = np.zeros(len(os.listdir(pathname_en)))
+        for i, filename_en_inner in enumerate(os.listdir(pathname_en)):
+            if filename_en_inner.endswith(".bin"):
+                T, dt, wf0, wf1 = read_bin_new_Rudnev(pathname_en + "/" + filename_en_inner)
+                time_en_list = T.replace(',', '.').split("-")
+                time_en[i] = float(time_en_list[-1]) + 60 * float(time_en_list[-2]) + 3600.0 * float(time_en_list[-3])
+                # level_en[i] = np.amax(wf0)
+    else:
+        time_en = np.zeros(1)
+
+    if os.path.exists(pathname_ac):
+        ext = '.RAW'
+        filenames_ac_times, filenames_ac_info = make_file_list_to_compare_new_program(pathname_ac, ext)
+        time_mode = np.zeros(len(filenames_ac_times))
+
+        nonzero_shift = True
+        shift = 0
+        step = 1
+        while nonzero_shift:
+            nonzero_shift = False
+            # print(shift)
+            for i in range(0, len(filenames_ac_times)):
+                time_mode[i] = shift + (
+                        float(filenames_ac_info[i][-1]) - float(filenames_ac_info[0][-1])) / 1e7 + float(
+                    filenames_ac_info[0][-2][-2:]) + 60 * float(filenames_ac_info[0][-2][-4:-2]) + 3600 * float(
+                    filenames_ac_info[0][-2][-6:-4])
+                if (int(time_mode[i]) < int(filenames_ac_info[i][-2][-2:]) + 60 * int(
+                        filenames_ac_info[i][-2][-4:-2]) + 3600 * int(filenames_ac_info[i][-2][-6:-4])):
+                    shift = shift + 1 / (2 ** step)
+                    step = step + 1
+                    nonzero_shift = True
+                if (int(time_mode[i]) > int(filenames_ac_info[i][-2][-2:]) + 60 * int(
+                        filenames_ac_info[i][-2][-4:-2]) + 3600 * int(filenames_ac_info[i][-2][-6:-4])):
+                    shift = shift - 1 / (2 ** step)
+                    step = step + 1
+                    nonzero_shift = True
+    else:
+        time_mode = np.zeros(1)
 
     time_pb = np.zeros(len(os.listdir(pathname_pb)))
-    energies_pb = np.zeros(len(os.listdir(pathname_pb)))
+    # level_pb = np.zeros(len(os.listdir(pathname_pb)))
     for i, filename_pb_inner in enumerate(os.listdir(pathname_pb)):
         if filename_pb_inner.endswith(".dat"):
             time_pb[i] = (int(filename_pb_inner.split("_")[-3]) * 3600 + int(
                 filename_pb_inner.split("_")[-2]) * 60 + float(filename_pb_inner.split("_")[-1][0:6].replace(",", ".")))
+            # from PictureBuilder import do_data_to_array, preprocessing_plot
+            # do_data_to_array('', pathname + "/" + filename_pb_inner)
+            # preprocessing_plot(raw_output=True)
+            # from PictureBuilder import array, angle_from, angle_to
+            # level_pb[i] = array[angle_from:angle_to + 1, 0: 1900].mean()
+            # print(time_pb[i])
 
-    '''
-    Алгоритм бинарного поиска - сравниваем две последовательности времен. Если нашли несовпадение - сдвигаем одну из них.
-    Шаг сдвига итеративно уменьшается.
-    По аналогии с измерением толщины проволоки линейкой - грубая и точная шкала - точность растет с размером выборки.
-    '''
-    ext = '.RAW'
-    filenames_ac_times, filenames_ac_info = make_file_list_to_compare_new_program(pathname_ac, ext)
-    maxima = np.zeros(len(filenames_ac_times))
-    time_mode = np.zeros(len(filenames_ac_times))
-    for i in range(0, len(filenames_ac_times)):
-        filename = pathname_ac + '/' + "-".join(filenames_ac_info[i]) + ext
-        # print(filenames_ac_info[i])
-        data, width, height = read_raw_Mind_Vision(filename)
-        data = subtract_plane(data)
-        maxima[i] = np.sum(data)
-    nonzero_shift = True
-    shots_in_first_second = 0
-    shift = 0
-    step = 1
-    while nonzero_shift:
-        nonzero_shift = False
-        print(shift)
-        for i in range(0, len(filenames_ac_times)):
-            time_mode[i] = shift + (
-                    float(filenames_ac_info[i][-1]) - float(filenames_ac_info[0][-1])) / 1e7 + float(
-                filenames_ac_info[0][-2][-2:]) + 60 * float(filenames_ac_info[0][-2][-4:-2]) + 3600.0 * float(
-                filenames_ac_info[0][-2][-6:-4])
-            if (int(time_mode[i]) < int(filenames_ac_info[i][-2][-2:]) + 60 * int(
-                    filenames_ac_info[i][-2][-4:-2]) + 3600 * int(filenames_ac_info[i][-2][-6:-4])):
-                shift = shift + 1 / (2 ** step)
-                step = step + 1
-                nonzero_shift = True
-            if (int(time_mode[i]) > int(filenames_ac_info[i][-2][-2:]) + 60 * int(
-                    filenames_ac_info[i][-2][-4:-2]) + 3600 * int(filenames_ac_info[i][-2][-6:-4])):
-                shift = shift - 1 / (2 ** step)
-                step = step + 1
-                nonzero_shift = True
-
-            # time_mode[i] = (float(filenames_ac_info[i][-1]))/1e7
-            # print((float(filenames_ac_info[i][-1]))/1e7)
-            # print(time_mode[i])
-    # fig = plt.figure()
     dictionary = {}
-    for i in range(0, len(time_en)):
-        cond1 = np.abs(time_en[i] - time_mode[np.argmin(np.abs(time_en[i] - time_mode))]) < 0.025
-        cond2 = np.abs(time_en[i] - time_pb[np.argmin(np.abs(time_en[i] - time_pb))]) < 0.025
-        if (cond1 and cond2):
-            dictionary[i] = (np.argmin(np.abs(time_en[i] - time_mode)), np.argmin(np.abs(time_en[i] - time_pb)))
-            print(str(i) + " " + str(np.argmin(np.abs(time_en[i] - time_mode))) + " " + str(
-                np.argmin(np.abs(time_en[i] - time_pb))))
-        elif (cond1 and not cond2):
-            dictionary[i] = (np.argmin(np.abs(time_en[i] - time_mode)), -1)
-            # print(str(i) + " " + str(np.argmin(np.abs(time_en[i] - time_mode)))+" "+str(np.argmin(np.abs(time_en[i] - time_pb))))
-        elif (not cond1 and cond2):
-            dictionary[i] = (-1, np.argmin(np.abs(time_en[i] - time_pb)))
-            # print(str(i) + " " + str(np.argmin(np.abs(time_en[i] - time_mode)))+" "+str(np.argmin(np.abs(time_en[i] - time_pb))))
-    # plt.show()
-    print(dictionary)
+    plt.scatter(time_en, np.ones(len(time_en)))
+    plt.scatter(time_mode, 2*np.ones(len(time_mode)))
+    plt.scatter(time_pb, np.zeros(len(time_pb)))
+    plt.show()
+    # print(time_en)
+    for i in range(0, len(time_pb)):
+        index_en = np.argmin(np.abs(time_pb[i] - time_en))
+        index_mode = np.argmin(np.abs(time_pb[i] - time_mode))
+        if time_mode[index_mode] < time_pb[i]:
+            index_mode = index_mode + 1
+        cond1 = np.abs(time_pb[i] - time_mode[index_mode]) < 0.05
+        cond2 = np.abs(time_pb[i] - time_en[index_en]) < 0.05
+        if cond1 and not cond2:
+            index_en = -1
+        elif not cond1 and cond2:
+            index_mode = -1
+        dictionary[i] = (index_mode, index_en)
+        # print(i, index_mode, index_en)
+        # print(str(i) + " " + str(np.argmin(np.abs(time_en[i] - time_mode)))+" "+str(np.argmin(np.abs(time_en[i] - time_pb))))
+    # best_shift_en = 0
+    # best_match_value = 0
+    # for i in range(0, len(time_pb)):
+    #     print(i, dictionary[i][1])
+    # for shift_en in range(-4, 5):
+    #     level_en_for_pb = [level_en[dictionary.get(i)[1]+shift_en] for i in range(len(level_pb))]
+    #     slope, intercept, r_value, p_value, std_err = stats.linregress(level_pb[:-1], level_en_for_pb[:-1])
+    #     if r_value**2 > best_match_value:
+    #         best_shift_en = shift_en
+    #         best_match_value = r_value**2
+    #     print(shift_en, slope, intercept, r_value**2, p_value, std_err)
+    # for i in range(len(level_pb)-1):
+    #     try:
+    #         if 0.5 < best_match_value:
+    #             dictionary[i] = (dictionary.get(i)[1]+best_shift_en, dictionary.get(i)[2])
+    #         else:
+    #             dictionary[i] = (-1, dictionary.get(i)[2])
+    #     except:
+    #         pass
+    # print(best_shift_en)
     return dictionary
 
-# level = 4
-# ws0 = modwt(energies_0[time_en > 0], 'db2', level)
-# # ws1 = modwt(energies_1[time_en > 0], 'db2', level)
-# ws1 = modwt(maxima, 'db2', level)
-
-'''plt.plot(time_en[time_en > 0], energies_0[time_en > 0]/ np.max(energies_0[time_en > 0]), '-o')
-plt.plot(time_mode, maxima / np.max(maxima), '-o')
-plt.show()'''
-
-m, c = find_kalibr(pathname_kalibr)
-#
-# f = interpolate.interp1d(time_mode, ws1[level, :], fill_value=0, bounds_error = False)
-#
-# plt.plot(time_en[:-1], ws0[level, :] / np.max(ws0[level, :]))
-# #plt.plot(np.arange(170, np.size(ws1[level, :])+170, 1), ws1[level, :] / np.max(ws1[level, :]))
-# plt.plot(time_en[:-1], f(time_en[:-1]) / np.max(f(time_en[:-1])))
-# plt.show()
-#
-# plt.scatter(energies_0/ np.max(energies_0), f(time_en) / np.max(f(time_en)))
-# plt.show()
-#
-# #plt.plot(np.convolve(ws0[level, :], ws1[level, :], 'same'))
-# plt.plot(np.convolve(ws0[level, :]- np.mean(ws0[level, :]),  ws1[level, :]- np.mean(ws1[level, :]), 'same'))
-# print(ws0[level, :].size/2)
-# print(np.argmax(np.convolve(ws0[level, :], f(time_en[:-1]), 'same')))
-# print(time_en[np.argmin(ws0[level, :])], ' and ', time_mode[np.argmin(ws1[level, :])])
-# print(time_en[np.argmax(np.convolve(ws0[level, :], f(time_en[:-1]), 'same'))]-time_en[int(ws0[level, :].size/2)])
-# plt.show()
-
-
-
-# maxima = dp.read_maxima(pathname_ac, filenames_ac_times, filenames_ac_info, ext, area=area, fon_coeff=1.0, old_osc=args.old_osc, limit_max = False, inv=args.inv, ac_lims=args.ac_lims, use_run_av=args.run_av, bg_from_empty=None, subtr_plane=True, bd_mult=bd_mult, bd_single=bd_single)
-
-'''
-for t_shift in range(-50, 50):
-    fig = plt.figure()
-    for i in range(0, len(filenames_ac_times)):
-        time_mode[i] = t_shift/10 + (float(filenames_ac_info[i][-1]) - float(filenames_ac_info[0][-1])) / 1e7 + float(
-            filenames_ac_info[0][-2][-2:]) + 60 * float(filenames_ac_info[0][-2][-4:-2]) + 3600.0 * float(
-            filenames_ac_info[0][-2][-6:-4])
-    f = interpolate.interp1d(time_mode, ws1[level, :], fill_value=None, bounds_error=False)
-    plt.scatter(energies_0, f(time_en))
-    plt.show()
-    fig.savefig('temp'+str(t_shift)+'.png')
-'''

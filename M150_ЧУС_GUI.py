@@ -1,10 +1,13 @@
 #!/usr/bin/env python
-from PictureBuilder import *
-from processing import do_processing_plot, set_energy_limits
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+
 import PySimpleGUI as sg
 import matplotlib
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+
+from PictureBuilder import *
+from matcher import make_dictionary, find_kalibr, read_bin_new_Rudnev, read_raw_Mind_Vision
+from processing import do_processing_plot, set_energy_limits
 
 matplotlib.use('TkAgg')
 sg.theme('Reddit')
@@ -39,9 +42,13 @@ menu_def = [['&File', ['&Open     Ctrl-O', '&Save       Ctrl-S', 'E&xit']],
                           '---', 'Print &array', 'Print &parameters', 'Print &filters']],
             ['&Help', '&About', ]]
 # define the window layout
-tab1_layout = [[sg.Canvas(size=(figure_w, figure_h), key='canvas')]]
+tab1_layout = [[sg.Canvas(size=(figure_w, figure_h), key='canvas')],
+               [sg.T('kalibr_folder'),
+                sg.In(default_text='G:/Мой диск/Филаментация/Энергии/октябрь/3/kalibr_no_lambda_ns10tr_8',
+                      key='kalibr_folder'), sg.FolderBrowse(target='kalibr_folder', key='browse_kalibr_folder'),
+                sg.Text('-', key='-energy-', size=(10, 1)), sg.Text('мДж')]]
 
-tab2_layout = [[sg.Output(size=(88, 10))],
+tab2_layout = [#[sg.Output(size=(88, 10))],
                [sg.Text('Parameters:', size=(10, 1)), sg.Button('Save parameters', size=(12, 1))],
                [sg.Text(' ', size=(10, 1)), sg.Text('Frequency', size=(11, 1)),
                 sg.InputText(key='-FREQ-'), sg.Button('Set frequency', size=(12, 1))],
@@ -71,7 +78,8 @@ tab2_layout = [[sg.Output(size=(88, 10))],
 
 tab3_layout = [[sg.Text('Save preview of the folder to ./Output (take a few minutes)')],
                [sg.Button('Folder Preview'), sg.Checkbox(
-                   'Save as .csv', default=False, key='-CSV-'), sg.Cancel()],
+                   'Save as .csv', default=False, key='-CSV-'), sg.Checkbox('Mode', default=False, key='-MODE-'),
+                sg.Checkbox('Energy', default=False, key='-ENERGY-'), sg.Cancel()],
                [sg.ProgressBar(1000, orientation='h', size=(30, 20), key='progbar')],
                [sg.Frame(layout=[[sg.Button('Save .csv to ./Output'), sg.Button('Save .pkl to ./Output')],
                                  [sg.Button('Energy contribution'), sg.Button('Average of folder')],
@@ -80,15 +88,15 @@ tab3_layout = [[sg.Text('Save preview of the folder to ./Output (take a few minu
                                   sg.InputText('22', key='-ENERGYTO-', size=(4, 1))],
                                  [sg.Button('Find local max'), sg.Button('Local max 3D (in this folder)'),
                                   sg.Button('Local max 3D (in all folders)')]],
-                         title='Specific processing functions from processing.py:', 
+                         title='Specific processing functions from processing.py:',
                          relief=sg.RELIEF_SUNKEN, tooltip='Use these to set flags')]]
 
-tab4_layout = [[sg.Canvas(size=(figure_w, figure_h), key='canvas-mode')],
-               [sg.T('kalibr_folder'), sg.In(key='kalibr_folder'), sg.FolderBrowse(target='kalibr_folder'), sg.OK()]]
+tab4_layout = [[sg.Canvas(size=(figure_w, figure_h), key='canvas-mode')]]
 
 layout = [[sg.Menu(menu_def, tearoff=True, pad=(200, 1))],
           [sg.TabGroup([[sg.Tab('Spectrum', tab1_layout), sg.Tab('Parameters', tab2_layout),
-                         sg.Tab('Data processing', tab3_layout), sg.Tab('Mode', tab4_layout)]])],
+                         sg.Tab('Data processing', tab3_layout),
+                         sg.Tab('Mode', tab4_layout, key='_tab_mode_', visible=False)]])],
           [sg.Button('Open'), place(sg.Button('Show', bind_return_key=True, visible=False)),
            place(sg.Button('Save', visible=False)), sg.Button('Exit')]]
 
@@ -97,18 +105,27 @@ window = sg.Window('Частотно-угловой спектр', layout, final
 
 # add the plot to the window
 fig_canvas_agg = None
+fig_canvas_agg_mode = None
 fig = None
 print("This is debug window. Re-routing the stdout")
 
 # The GUI Event Loop
+kalibr_m = 0
+kalibr_c = 0
+buffer_directory = ''
 while True:
     event, values = window.read()
     if event == 'Exit' or event is None:
         break  # exit button clicked
     elif event == 'Open' or event == "o:79" or event == 'Open     Ctrl-O':
-        do_ask_open_file("")
+        global_filename = do_ask_open_file("")
         window['Show'].update(visible=True)
         window['Save'].update(visible=True)
+        #print(buffer_directory, os.path.dirname(global_filename))
+        if buffer_directory != os.path.dirname(global_filename):
+            dictionary_of_match = make_dictionary(os.path.dirname(global_filename))
+            kalibr_m, kalibr_c = find_kalibr(values['kalibr_folder'])
+        buffer_directory = os.path.dirname(global_filename)
     elif event == 'Save' or event == "s:83" or event == 'Save       Ctrl-S':
         do_ask_save_file("", fig)
     elif event == 'Show' or event == "p:80":
@@ -121,15 +138,36 @@ while True:
             # ** IMPORTANT ** Clean up previous drawing before drawing again
             delete_figure_agg(fig_canvas_agg)
         fig_canvas_agg = draw_figure(window['canvas'].TKCanvas, fig)
-        do_plot('', (values["-NORM-"], not values["-PATCH-"],
-                     values['_SLIDER_'] / 10., values['_SLIDERV_'] / 10.,
-                     values['-RUS-'], values['-INSERTTITLE-'],
-                     values['-PIXELS-'], values['-NEWCALIBRATION-']))
-        fig = plt.gcf()
-        if fig_canvas_agg:
-            # ** IMPORTANT ** Clean up previous drawing before drawing again
-            delete_figure_agg(fig_canvas_agg)
-        fig_canvas_agg = draw_figure(window['canvas-mode'].TKCanvas, fig)
+
+        index_pb = os.listdir(os.path.dirname(global_filename)).index(os.path.basename(global_filename))
+        print("index "+str(index_pb))
+        window['-energy-'].update('-')
+        if dictionary_of_match.get(index_pb):
+            pathname_ac = os.path.dirname(global_filename).replace('Спектры', 'Моды')
+            if dictionary_of_match.get(index_pb)[0] > 0 and os.path.isfile(
+                    pathname_ac + '/' + os.listdir(pathname_ac)[dictionary_of_match.get(index_pb)[0]]):
+                window.find_element('_tab_mode_').Update(visible=True)
+                data, width, height = read_raw_Mind_Vision(
+                    pathname_ac + '/' + os.listdir(pathname_ac)[dictionary_of_match.get(index_pb)[0]])
+                fig = plt.figure()
+                plt.imshow(data, cmap='jet', aspect='auto')
+                fig_mode = plt.gcf()
+                if fig_canvas_agg_mode:
+                    # ** IMPORTANT ** Clean up previous drawing before drawing again
+                    delete_figure_agg(fig_canvas_agg_mode)
+                fig_canvas_agg_mode = draw_figure(window['canvas-mode'].TKCanvas, fig_mode)
+            else:
+                window.find_element('_tab_mode_').Update(visible=False)
+            pathname_en = os.path.dirname(global_filename).replace('Спектры', 'Энергии')
+            if (os.path.exists(pathname_en + '/TestFolder')):
+                pathname_en = pathname_en + '/TestFolder'
+            if dictionary_of_match.get(index_pb)[1] > 0 and os.path.isfile(
+                    pathname_en + '/' + os.listdir(pathname_en)[dictionary_of_match.get(index_pb)[1]]):
+                T, dt, wf0, wf1 = read_bin_new_Rudnev(
+                    pathname_en + '/' + os.listdir(pathname_en)[dictionary_of_match.get(index_pb)[1]])
+                window['-energy-'].update(str(np.amax(wf0) * kalibr_m + kalibr_c))
+    elif event == 'browse_kalibr_folder':
+        m, c = find_kalibr(values['kalibr_folder'])
     elif event == 'Print array':
         do_print_array('', '')
     elif event == 'Rotate180':
@@ -179,7 +217,7 @@ while True:
     elif event == 'Save filters':
         do_save_filters('', '')
     elif event == 'Folder Preview':
-        do_folder_preview(window, values["-CSV-"])
+        do_folder_preview(window, values["-CSV-"], dictionary_of_match)
     elif event == 'Save .csv to ./Output':
         do_processing_plot('', mode='df')
     elif event == 'Save .pkl to ./Output':
