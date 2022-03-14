@@ -83,7 +83,7 @@ def do_folder_preview(window, args, dictionary_of_match):
     Работает с последним открытым типом файлов. """
     pathname = os.path.dirname(global_filename)
     filename_extension = os.path.splitext(global_filename)[-1]
-    #print(dictionary_of_match)
+    # print(dictionary_of_match)
     if pathname:
         try:
             os.makedirs(address_of_save_df + '/' + graph_title) if (args) else os.makedirs(
@@ -95,7 +95,9 @@ def do_folder_preview(window, args, dictionary_of_match):
         file.write(repr(globals()))
         file.close()
         event, values = window.read(timeout=0)
-        m, c = find_kalibr(values['kalibr_folder'])
+        if values['-ENERGY-']:
+            m, c = find_kalibr(values['kalibr_folder'], path_to_save=address_of_save_df + '/' + graph_title if args else
+                    address_of_save_fig + '/' + graph_title)
         pathname_en = os.path.dirname(global_filename).replace('Спектры', 'Энергии')
         if (os.path.exists(pathname_en + '/TestFolder')):
             pathname_en = pathname_en + '/TestFolder'
@@ -127,28 +129,43 @@ def do_folder_preview(window, args, dictionary_of_match):
                         fig.suptitle(str(round(np.amax(wf0) * m + c, 2)) + ' mJ',
                                      y=1, ha='right', fontsize=12)
                         # print(np.amax(wf0)*m+c, array[angle_from:angle_to + 1, 0: 1900].mean())
+                        if args:
+                            np.savetxt(address_of_save_df + '/' + graph_title + '/' + str(
+                                round(np.amax(wf0) * m + c, 2)) + '_' + global_basename.replace('.dat', '_csv.txt'),
+                                       data_frame, delimiter=' ')
+                        else:
+                            plt.savefig(address_of_save_fig + '/' + graph_title + '/' + str(
+                                round(np.amax(wf0) * m + c, 2)) + '_' +
+                                        global_basename.replace('dat', 'png'), dpi=300)
                     else:
                         fig.suptitle(global_basename[:global_basename.find("_")],
                                      y=1, ha='right', fontsize=12)
-                    if args:
-                        np.savetxt(address_of_save_df + '/' + graph_title + '/' +
-                                   global_basename.replace('.dat', '_csv.txt'), data_frame, delimiter=' ')
-                    else:
-                        plt.savefig(address_of_save_fig + '/' + graph_title + '/' +
-                                    global_basename.replace('dat', 'png'), dpi=300)
+                        if args:
+                            np.savetxt(address_of_save_df + '/' + graph_title + '/' +
+                                       global_basename.replace('.dat', '_csv.txt'), data_frame, delimiter=' ')
+                        else:
+                            plt.savefig(address_of_save_fig + '/' + graph_title + '/' +
+                                        global_basename.replace('dat', 'png'), dpi=300)
+                except:
+                    print("An exception #1 occurred")
+                try:
                     if (values['-MODE-'] and dictionary_of_match.get(i) and dictionary_of_match.get(i)[0] > 0):
                         data, width, height = read_raw_Mind_Vision(
                             pathname_ac + '/' + os.listdir(pathname_ac)[dictionary_of_match.get(i)[0]])
                         # print(data.mean(), array[angle_from:angle_to + 1, 0: 1900].mean())
                         fig = plt.figure()
                         plt.imshow(data, cmap='jet', aspect='auto')
-                        fig.savefig(address_of_save_fig + '/' + graph_title + '/' +
-                                    global_basename[0:-4] + "_mode.png", dpi=300)
+                        if (values['-ENERGY-'] and dictionary_of_match.get(i) and dictionary_of_match.get(i)[1] > 0):
+                            fig.savefig(address_of_save_fig + '/' + graph_title + '/' + str(
+                                round(np.amax(wf0) * m + c, 2)) + '_' + global_basename[0:-4] + "_mode.png", dpi=300)
+                        else:
+                            fig.savefig(address_of_save_fig + '/' + graph_title + '/' +
+                                        global_basename[0:-4] + "_mode.png", dpi=300)
                         plt.close()
-                    if (values['-MODE-'] and values['-ENERGY-'] and dictionary_of_match.get(i) and dictionary_of_match.get(i)[0] > 0 and dictionary_of_match.get(i)[1] > 0):
-                        print(array[angle_from:angle_to + 1, 0: 1900].mean(), data.mean(), np.amax(wf0)*m+c)
                 except:
-                    print("An exception occurred")
+                    print("An exception #2 occurred")
+                # if (values['-MODE-'] and values['-ENERGY-'] and dictionary_of_match.get(i) and dictionary_of_match.get(i)[0] > 0 and dictionary_of_match.get(i)[1] > 0):
+                # print(array[angle_from:angle_to + 1, 0: 1900].mean(), data.mean(), np.amax(wf0)*m+c)
 
 
 def do_set_freq_limits(self, f):

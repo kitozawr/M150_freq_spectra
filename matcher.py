@@ -249,7 +249,7 @@ def read_raw_Mind_Vision(filename):
     return (data, width, height)
 
 
-def find_kalibr(pathname_kalibr):
+def find_kalibr(pathname_kalibr, path_to_save= None):
     time_en = np.zeros(len(os.listdir(pathname_kalibr)))
     energies_0 = np.zeros(len(os.listdir(pathname_kalibr)))
     energies_1 = np.zeros(len(os.listdir(pathname_kalibr)))
@@ -263,10 +263,14 @@ def find_kalibr(pathname_kalibr):
     A = np.vstack([energies_0[time_en > 0], np.ones(len(energies_0[time_en > 0]))]).T
     m, c = np.linalg.lstsq(A, energies_1[time_en > 0] * 100, rcond=None)[0]
     #print(m, c)
+    fig = plt.figure()
     plt.scatter(energies_0[time_en > 0], energies_1[time_en > 0] * 100)
-    plt.title(pathname_kalibr)
+    plt.title(pathname_kalibr, fontsize=8)
     import PictureBuilder as PB
-    filename = PB.address_of_save_fig + '/kalibr'+ '.png'
+    if path_to_save:
+        filename = path_to_save + '/kalibr' + '.png'
+    else:
+        filename = PB.address_of_save_fig + '/kalibr'+ '.png'
     plt.savefig(filename, dpi=100)
     # plt.plot(time_en[time_en > 0], )
     # plt.show()
@@ -335,16 +339,20 @@ def make_dictionary(pathname):
             # print(time_pb[i])
 
     dictionary = {}
-    plt.scatter(time_en, np.ones(len(time_en)))
-    plt.scatter(time_mode, 2*np.ones(len(time_mode)))
-    plt.scatter(time_pb, np.zeros(len(time_pb)))
-    plt.show()
+    # plt.scatter(time_en, np.ones(len(time_en)))
+    # plt.scatter(time_mode, 2*np.ones(len(time_mode)))
+    # plt.scatter(time_pb, np.zeros(len(time_pb)))
+    # plt.show()
     # print(time_en)
     for i in range(0, len(time_pb)):
         index_en = np.argmin(np.abs(time_pb[i] - time_en))
         index_mode = np.argmin(np.abs(time_pb[i] - time_mode))
         if time_mode[index_mode] < time_pb[i]:
             index_mode = index_mode + 1
+        # print(index_mode, len(time_mode))
+        if index_mode == len(time_mode):
+            index_mode = -1
+
         cond1 = np.abs(time_pb[i] - time_mode[index_mode]) < 0.05
         cond2 = np.abs(time_pb[i] - time_en[index_en]) < 0.05
         if not cond1:

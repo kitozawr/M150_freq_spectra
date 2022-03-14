@@ -45,36 +45,37 @@ menu_def = [['&File', ['&Open     Ctrl-O', '&Save       Ctrl-S', 'E&xit']],
 tab1_layout = [[sg.Canvas(size=(figure_w, figure_h), key='canvas')],
                [sg.T('kalibr_folder'),
                 sg.In(default_text='G:/Мой диск/Филаментация/Энергии/октябрь/3/kalibr_no_lambda_ns10tr_8',
-                      key='kalibr_folder'), sg.FolderBrowse(target='kalibr_folder', key='browse_kalibr_folder'),
+                      key='kalibr_folder'), sg.FolderBrowse(target='kalibr_folder', key='browse_kalibr_folder',
+                                                            initial_folder='G:/Мой диск/Филаментация/Энергии/'),
                 sg.Text('-', key='-energy-', size=(10, 1)), sg.Text('мДж')]]
 
-tab2_layout = [#[sg.Output(size=(88, 10))],
-               [sg.Text('Parameters:', size=(10, 1)), sg.Button('Save parameters', size=(12, 1))],
-               [sg.Text(' ', size=(10, 1)), sg.Text('Frequency', size=(11, 1)),
-                sg.InputText(key='-FREQ-'), sg.Button('Set frequency', size=(12, 1))],
-               [sg.Text(' ', size=(10, 1)), sg.Text('Grating', size=(11, 1)),
-                sg.InputText(key='-GRATE-'), sg.Button('Set grate', size=(12, 1))],
-               [sg.Text(' ', size=(10, 1)), sg.Text('Rotate', size=(11, 1)),
-                sg.InputText(key='-ROT-'), sg.Button('Set rotate', size=(12, 1))],
-               [sg.Text(' ', size=(10, 1)), sg.Text('Scale', size=(11, 1)), sg.InputText(
-                   'lin', key='-SCALE-'), sg.Button('Set scale', size=(12, 1))],
-               [sg.Text(' ', size=(10, 1)), sg.Text('Title', size=(11, 1)), sg.InputText(
-                   key='-TITLE-', focus=True), sg.Button('Set title', size=(12, 1))],
-               [sg.Checkbox('Normalize', default=True, key='-NORM-'),
-                sg.Checkbox('Crop image', default=True, key='-PATCH-', size=(8, 1)),
-                sg.Checkbox('Translate into Russian', default=True, key='-RUS-'),
-                sg.Checkbox('Insert title', default=True, key='-INSERTTITLE-'),
-                sg.Checkbox('New calibration', default=True, key='-NEWCALIBRATION-')],
-               [sg.Text('Angle shift=', size=(10, 1)), sg.T('0', key='_SHIFT_', size=(11, 1)),
-                sg.Slider((-100, 100), key='_SLIDER_', orientation='h', default_value=0,
-                          disable_number_display=True, enable_events=True)],
-               [sg.Text('Rotate degr=', size=(10, 1)), sg.T('0', key='_ANGLE_', size=(11, 1)),
-                sg.Slider(range=(-50, 50), key='_SLIDERV_', orientation='h', default_value=0, tick_interval=0.1,
-                          disable_number_display=True, enable_events=True)],
-               [sg.Checkbox('Convert angles back to pixels', default=False, key='-PIXELS-')],
-               [sg.Text('_' * 89)],
-               [sg.Text('Filters:', size=(10, 1)), sg.Button('Add filter'), sg.Button('Delete last'),
-                sg.Button('Clear all'), sg.Button('Save filters')]]
+tab2_layout = [[sg.Output(size=(88, 10))],
+    [sg.Text('Parameters:', size=(10, 1)), sg.Button('Save parameters', size=(12, 1))],
+    [sg.Text(' ', size=(10, 1)), sg.Text('Frequency', size=(11, 1)),
+     sg.InputText(key='-FREQ-'), sg.Button('Set frequency', size=(12, 1))],
+    [sg.Text(' ', size=(10, 1)), sg.Text('Grating', size=(11, 1)),
+     sg.InputText(key='-GRATE-'), sg.Button('Set grate', size=(12, 1))],
+    [sg.Text(' ', size=(10, 1)), sg.Text('Rotate', size=(11, 1)),
+     sg.InputText(key='-ROT-'), sg.Button('Set rotate', size=(12, 1))],
+    [sg.Text(' ', size=(10, 1)), sg.Text('Scale', size=(11, 1)), sg.InputText(
+        'lin', key='-SCALE-'), sg.Button('Set scale', size=(12, 1))],
+    [sg.Text(' ', size=(10, 1)), sg.Text('Title', size=(11, 1)), sg.InputText(
+        key='-TITLE-', focus=True), sg.Button('Set title', size=(12, 1))],
+    [sg.Checkbox('Normalize', default=True, key='-NORM-'),
+     sg.Checkbox('Crop image', default=True, key='-PATCH-', size=(8, 1)),
+     sg.Checkbox('Translate into Russian', default=True, key='-RUS-'),
+     sg.Checkbox('Insert title', default=True, key='-INSERTTITLE-'),
+     sg.Checkbox('New calibration', default=True, key='-NEWCALIBRATION-')],
+    [sg.Text('Angle shift=', size=(10, 1)), sg.T('0', key='_SHIFT_', size=(11, 1)),
+     sg.Slider((-100, 100), key='_SLIDER_', orientation='h', default_value=0,
+               disable_number_display=True, enable_events=True)],
+    [sg.Text('Rotate degr=', size=(10, 1)), sg.T('0', key='_ANGLE_', size=(11, 1)),
+     sg.Slider(range=(-50, 50), key='_SLIDERV_', orientation='h', default_value=0, tick_interval=0.1,
+               disable_number_display=True, enable_events=True)],
+    [sg.Checkbox('Convert angles back to pixels', default=False, key='-PIXELS-')],
+    [sg.Text('_' * 89)],
+    [sg.Text('Filters:', size=(10, 1)), sg.Button('Add filter'), sg.Button('Delete last'),
+     sg.Button('Clear all'), sg.Button('Save filters')]]
 
 tab3_layout = [[sg.Text('Save preview of the folder to ./Output (take a few minutes)')],
                [sg.Button('Folder Preview'), sg.Checkbox(
@@ -121,7 +122,7 @@ while True:
         global_filename = do_ask_open_file("")
         window['Show'].update(visible=True)
         window['Save'].update(visible=True)
-        #print(buffer_directory, os.path.dirname(global_filename))
+        # print(buffer_directory, os.path.dirname(global_filename))
         if buffer_directory != os.path.dirname(global_filename):
             dictionary_of_match = make_dictionary(os.path.dirname(global_filename))
             kalibr_m, kalibr_c = find_kalibr(values['kalibr_folder'])
@@ -140,7 +141,7 @@ while True:
         fig_canvas_agg = draw_figure(window['canvas'].TKCanvas, fig)
 
         index_pb = os.listdir(os.path.dirname(global_filename)).index(os.path.basename(global_filename))
-        print("index "+str(index_pb))
+        print("index " + str(index_pb))
         window['-energy-'].update('-')
         if dictionary_of_match.get(index_pb):
             pathname_ac = os.path.dirname(global_filename).replace('Спектры', 'Моды')
@@ -167,7 +168,7 @@ while True:
                     pathname_en + '/' + os.listdir(pathname_en)[dictionary_of_match.get(index_pb)[1]])
                 window['-energy-'].update(str(np.amax(wf0) * kalibr_m + kalibr_c))
     elif event == 'browse_kalibr_folder':
-        m, c = find_kalibr(values['kalibr_folder'])
+        kalibr_m, kalibr_c = find_kalibr(values['kalibr_folder'])
     elif event == 'Print array':
         do_print_array('', '')
     elif event == 'Rotate180':
@@ -248,5 +249,4 @@ while True:
         sg.popup(' ' * 29 + '~About this program~', 'Webpage: https://github.com/kitozawr/M150_freq_spectra',
                  "Help:        ./README.md", 'Author:     Zhidovtsev Nikita', grab_anywhere=True)
         window.reappear()
-
 window.close()
