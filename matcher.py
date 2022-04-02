@@ -1,49 +1,7 @@
 import os
 import struct
-
 import matplotlib.pylab as plt
 import numpy as np
-import pywt
-
-
-def circular_convolve_d(h_t, v_j_1, j):
-    '''
-    jth level decomposition
-    h_t: \tilde{h} = h / sqrt(2)
-    v_j_1: v_{j-1}, the (j-1)th scale coefficients
-    return: w_j (or v_j)
-    '''
-    N = len(v_j_1)
-    L = len(h_t)
-    w_j = np.zeros(N)
-    l = np.arange(L)
-    for t in range(N):
-        index = np.mod(t - 2 ** (j - 1) * l, N)
-        v_p = np.array([v_j_1[ind] for ind in index])
-        w_j[t] = (np.array(h_t) * v_p).sum()
-    return w_j
-
-
-def modwt(x, filters, level):
-    '''
-    filters: 'db1', 'db2', 'haar', ...
-    return: see matlab
-    '''
-    # filter
-    wavelet = pywt.Wavelet(filters)
-    h = wavelet.dec_hi
-    g = wavelet.dec_lo
-    h_t = np.array(h) / np.sqrt(2)
-    g_t = np.array(g) / np.sqrt(2)
-    wavecoeff = []
-    v_j_1 = x
-    for j in range(level):
-        w = circular_convolve_d(h_t, v_j_1, j + 1)
-        v_j_1 = circular_convolve_d(g_t, v_j_1, j + 1)
-        wavecoeff.append(w)
-    wavecoeff.append(v_j_1)
-    return np.vstack(wavecoeff)
-
 
 # %% Чтение бинарных файлов с нового осциллографа.
 def read_bin_new_Rudnev(filepath):
@@ -65,10 +23,6 @@ def read_bin_new_Rudnev(filepath):
 
     waveform = np.fromiter(struct.unpack(s, data[61:]), dtype='int8')
 
-    # ch0_arr = [dV, ch0_adj, wf0]
-    # ch1_arr = [dV, ch1_adj, wf1]
-
-    # print("filename = {3}, T = {0}, dt = {1}, dV = {2}".format(T, dt, dV0, dV1, filepath))
 
     if ch0_on and ch1_on:
         ch_num = 2
@@ -262,7 +216,6 @@ def find_kalibr(pathname_kalibr, path_to_save= None):
             energies_1[i] = np.amax(wf1)
     A = np.vstack([energies_0[time_en > 0], np.ones(len(energies_0[time_en > 0]))]).T
     m, c = np.linalg.lstsq(A, energies_1[time_en > 0] * 100, rcond=None)[0]
-    #print(m, c)
     fig = plt.figure()
     plt.scatter(energies_0[time_en > 0], energies_1[time_en > 0] * 100)
     plt.title(pathname_kalibr, fontsize=8)
@@ -272,8 +225,6 @@ def find_kalibr(pathname_kalibr, path_to_save= None):
     else:
         filename = PB.address_of_save_fig + '/kalibr'+ '.png'
     plt.savefig(filename, dpi=100)
-    # plt.plot(time_en[time_en > 0], )
-    # plt.show()
     return (m, c)
 
 
@@ -281,18 +232,15 @@ def make_dictionary(pathname):
     pathname_en = pathname.replace('Спектры', 'Энергии')
     if (os.path.exists(pathname_en+'/TestFolder')):
         pathname_en = pathname_en+'/TestFolder'
-    # print(pathname_en)
     pathname_ac = pathname.replace('Спектры', 'Моды')
     pathname_pb = pathname
     if os.path.exists(pathname_en):
         time_en = np.zeros(len(os.listdir(pathname_en)))
-        # level_en = np.zeros(len(os.listdir(pathname_en)))
         for i, filename_en_inner in enumerate(os.listdir(pathname_en)):
             if filename_en_inner.endswith(".bin"):
                 T, dt, wf0, wf1 = read_bin_new_Rudnev(pathname_en + "/" + filename_en_inner)
                 time_en_list = T.replace(',', '.').split("-")
                 time_en[i] = float(time_en_list[-1]) + 60 * float(time_en_list[-2]) + 3600.0 * float(time_en_list[-3])
-                # level_en[i] = np.amax(wf0)
     else:
         time_en = np.zeros(1)
 
@@ -306,7 +254,6 @@ def make_dictionary(pathname):
         step = 1
         while nonzero_shift:
             nonzero_shift = False
-            # print(shift)
             for i in range(0, len(filenames_ac_times)):
                 time_mode[i] = shift + (
                         float(filenames_ac_info[i][-1]) - float(filenames_ac_info[0][-1])) / 1e7 + float(
@@ -326,30 +273,16 @@ def make_dictionary(pathname):
         time_mode = np.zeros(1)
 
     time_pb = np.zeros(len(os.listdir(pathname_pb)))
-    # level_pb = np.zeros(len(os.listdir(pathname_pb)))
     for i, filename_pb_inner in enumerate(os.listdir(pathname_pb)):
         if filename_pb_inner.endswith(".dat"):
             time_pb[i] = (int(filename_pb_inner.split("_")[-3]) * 3600 + int(
                 filename_pb_inner.split("_")[-2]) * 60 + float(filename_pb_inner.split("_")[-1][0:6].replace(",", ".")))
-            # from PictureBuilder import do_data_to_array, preprocessing_plot
-            # do_data_to_array('', pathname + "/" + filename_pb_inner)
-            # preprocessing_plot(raw_output=True)
-            # from PictureBuilder import array, angle_from, angle_to
-            # level_pb[i] = array[angle_from:angle_to + 1, 0: 1900].mean()
-            # print(time_pb[i])
-
     dictionary = {}
-    # plt.scatter(time_en, np.ones(len(time_en)))
-    # plt.scatter(time_mode, 2*np.ones(len(time_mode)))
-    # plt.scatter(time_pb, np.zeros(len(time_pb)))
-    # plt.show()
-    # print(time_en)
     for i in range(0, len(time_pb)):
         index_en = np.argmin(np.abs(time_pb[i] - time_en))
         index_mode = np.argmin(np.abs(time_pb[i] - time_mode))
         if time_mode[index_mode] < time_pb[i]:
             index_mode = index_mode + 1
-        # print(index_mode, len(time_mode))
         if index_mode == len(time_mode):
             index_mode = -1
 
@@ -360,31 +293,5 @@ def make_dictionary(pathname):
         if not cond2:
             index_en = -1
         dictionary[i] = (index_mode, index_en)
-        # print(i, index_mode, index_en)
-        # print(str(i) + " " + str(np.argmin(np.abs(time_en[i] - time_mode)))+" "+str(np.argmin(np.abs(time_en[i] - time_pb))))
-    # best_shift_en = 0
-    # best_match_value = 0
-    # for i in range(0, len(time_pb)):
-    #     index_en = np.argmin(np.abs(time_pb[i] - time_en))
-    #     index_mode = np.argmin(np.abs(time_pb[i] - time_mode))
-    #     if time_mode[index_mode] < time_pb[i]:
-    #         index_mode = index_mode + 1
-    #     print(i, dictionary[i][0], dictionary[i][1], time_pb[i], time_mode[index_mode], time_en[index_en])
-    # for shift_en in range(-4, 5):
-    #     level_en_for_pb = [level_en[dictionary.get(i)[1]+shift_en] for i in range(len(level_pb))]
-    #     slope, intercept, r_value, p_value, std_err = stats.linregress(level_pb[:-1], level_en_for_pb[:-1])
-    #     if r_value**2 > best_match_value:
-    #         best_shift_en = shift_en
-    #         best_match_value = r_value**2
-    #     print(shift_en, slope, intercept, r_value**2, p_value, std_err)
-    # for i in range(len(level_pb)-1):
-    #     try:
-    #         if 0.5 < best_match_value:
-    #             dictionary[i] = (dictionary.get(i)[1]+best_shift_en, dictionary.get(i)[2])
-    #         else:
-    #             dictionary[i] = (-1, dictionary.get(i)[2])
-    #     except:
-    #         pass
-    # print(best_shift_en)
     return dictionary
 

@@ -1,13 +1,11 @@
 #!/usr/bin/env python
-
 import PySimpleGUI as sg
 import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-
 from PictureBuilder import *
 from matcher import make_dictionary, find_kalibr, read_bin_new_Rudnev, read_raw_Mind_Vision
-from processing import do_processing_plot, set_energy_limits
+from processing import do_processing_plot, set_energy_limits, set_energy_for_this_folder
 
 matplotlib.use('TkAgg')
 sg.theme('Reddit')
@@ -49,18 +47,17 @@ tab1_layout = [[sg.Canvas(size=(figure_w, figure_h), key='canvas')],
                                                             initial_folder='G:/Мой диск/Филаментация/Энергии/'),
                 sg.Text('-', key='-energy-', size=(10, 1)), sg.Text('мДж')]]
 
-tab2_layout = [[sg.Output(size=(88, 10))],
+tab2_layout = [[sg.Output(size=(88, 10), key = '_output_')],
+    [sg.Button('Clear', size=(10, 1))],
+    [sg.Push(),sg.Text('Frequency', size=(10, 1)), sg.InputText(key='-FREQ-', size=(11, 1)),
+     sg.Button('Set frequency', size=(12, 1)), sg.Text('Grating', size=(10, 1)),
+     sg.InputText(key='-GRATE-', size=(11, 1)), sg.Button('Set grate', size=(12, 1)), sg.Push()],
+    [sg.Push(), sg.Text('Rotate', size=(10, 1)), sg.InputText(key='-ROT-', size=(11, 1)),
+     sg.Button('Set rotate', size=(12, 1)), sg.Text('Scale', size=(10, 1)),
+     sg.InputText('lin', key='-SCALE-', size=(11, 1)), sg.Button('Set scale', size=(12, 1)), sg.Push()],
+    [sg.Push(), sg.Text('Title', size=(10, 1)), sg.InputText(
+        key='-TITLE-', size=(54, 1), focus=True), sg.Button('Set title', size=(12, 1)), sg.Push()],
     [sg.Text('Parameters:', size=(10, 1)), sg.Button('Save parameters', size=(12, 1))],
-    [sg.Text(' ', size=(10, 1)), sg.Text('Frequency', size=(11, 1)),
-     sg.InputText(key='-FREQ-'), sg.Button('Set frequency', size=(12, 1))],
-    [sg.Text(' ', size=(10, 1)), sg.Text('Grating', size=(11, 1)),
-     sg.InputText(key='-GRATE-'), sg.Button('Set grate', size=(12, 1))],
-    [sg.Text(' ', size=(10, 1)), sg.Text('Rotate', size=(11, 1)),
-     sg.InputText(key='-ROT-'), sg.Button('Set rotate', size=(12, 1))],
-    [sg.Text(' ', size=(10, 1)), sg.Text('Scale', size=(11, 1)), sg.InputText(
-        'lin', key='-SCALE-'), sg.Button('Set scale', size=(12, 1))],
-    [sg.Text(' ', size=(10, 1)), sg.Text('Title', size=(11, 1)), sg.InputText(
-        key='-TITLE-', focus=True), sg.Button('Set title', size=(12, 1))],
     [sg.Checkbox('Normalize', default=True, key='-NORM-'),
      sg.Checkbox('Crop image', default=True, key='-PATCH-', size=(8, 1)),
      sg.Checkbox('Translate into Russian', default=True, key='-RUS-'),
@@ -83,12 +80,12 @@ tab3_layout = [[sg.Text('Save preview of the folder to ./Output (take a few minu
                 sg.Checkbox('Energy', default=False, key='-ENERGY-'), sg.Cancel()],
                [sg.ProgressBar(1000, orientation='h', size=(30, 20), key='progbar')],
                [sg.Frame(layout=[[sg.Button('Save .csv to ./Output'), sg.Button('Save .pkl to ./Output')],
-                                 [sg.Button('Energy contribution'), sg.Button('Average of folder')],
+                                 [sg.Button('Average of folder')],
                                  [sg.Text('Enregy limits (mJ)'), sg.InputText('3', key='-ENERGYFROM-',
                                                                               size=(4, 1)),
                                   sg.InputText('22', key='-ENERGYTO-', size=(4, 1))],
-                                 [sg.Button('Find local max'), sg.Button('Local max 3D (in this folder)'),
-                                  sg.Button('Local max 3D (in all folders)')]],
+                                 [sg.Button('Find local max'), sg.Button('Local max 2D (in this folder)'), sg.Button('Energy contribution')],
+                                 [sg.Button('Local max 3D (in this folder)'), sg.Button('Local max 3D (in all folders)')]],
                          title='Specific processing functions from processing.py:',
                          relief=sg.RELIEF_SUNKEN, tooltip='Use these to set flags')]]
 
@@ -103,7 +100,6 @@ layout = [[sg.Menu(menu_def, tearoff=True, pad=(200, 1))],
 
 # create the form and show it without the plot
 window = sg.Window('Частотно-угловой спектр', layout, finalize=True, return_keyboard_events=True)
-
 # add the plot to the window
 fig_canvas_agg = None
 fig_canvas_agg_mode = None
@@ -167,6 +163,8 @@ while True:
                 T, dt, wf0, wf1 = read_bin_new_Rudnev(
                     pathname_en + '/' + os.listdir(pathname_en)[dictionary_of_match.get(index_pb)[1]])
                 window['-energy-'].update(str(np.amax(wf0) * kalibr_m + kalibr_c))
+    elif event == 'Clear':
+        window.FindElement('_output_').Update('')
     elif event == 'browse_kalibr_folder':
         kalibr_m, kalibr_c = find_kalibr(values['kalibr_folder'])
     elif event == 'Print array':
@@ -220,21 +218,26 @@ while True:
     elif event == 'Folder Preview':
         do_folder_preview(window, values["-CSV-"], dictionary_of_match)
     elif event == 'Save .csv to ./Output':
-        do_processing_plot('', mode='df')
+        do_processing_plot(window, mode='df')
     elif event == 'Save .pkl to ./Output':
-        do_processing_plot('', mode='pkl')
+        do_processing_plot(window, mode='pkl')
     elif event == 'Find local max':
-        do_processing_plot('', mode='find_max')
+        do_processing_plot(window, mode='find_max')
     elif event == 'Local max 3D (in this folder)':
         set_energy_limits(float(values["-ENERGYFROM-"]), float(values["-ENERGYTO-"]))
-        do_processing_plot('', mode='3Den')
+        do_processing_plot(window, mode='3Den')
+    elif event == 'Local max 2D (in this folder)':
+        set_energy_limits(float(values["-ENERGYFROM-"]), float(values["-ENERGYTO-"]))
+        set_energy_for_this_folder(dictionary_of_match, kalibr_m, kalibr_c)
+        do_processing_plot(window, mode='2D_folder')
     elif event == 'Local max 3D (in all folders)':
         set_energy_limits(float(values["-ENERGYFROM-"]), float(values["-ENERGYTO-"]))
-        do_processing_plot('', mode='3Ddistance')
+        do_processing_plot(window, mode='3Ddistance')
     elif event == 'Energy contribution':
-        do_processing_plot('', mode='energy_red')
+        set_energy_limits(float(values["-ENERGYFROM-"]), float(values["-ENERGYTO-"]))
+        do_processing_plot(window, mode='energy_red')
     elif event == 'Average of folder':
-        do_processing_plot('', mode='Average of folder')
+        do_processing_plot(window, mode='Average of folder')
         fig = plt.gcf()
         if fig_canvas_agg:
             # ** IMPORTANT ** Clean up previous drawing before drawing again

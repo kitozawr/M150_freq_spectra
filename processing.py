@@ -1,4 +1,5 @@
 import PictureBuilder as PB
+from matcher import read_bin_new_Rudnev
 import matplotlib.pylab as plt
 import numpy as np
 from skimage.feature import peak_local_max
@@ -14,13 +15,23 @@ energy_min = 0
 energy_max = 0
 
 
+window_copy = None
+dictionary= 0
+m = 1
+cnst = 0
+
 def set_energy_limits(enfrom, ento):
     global energy_min, energy_max
     energy_min = enfrom
     energy_max = ento
 
+def set_energy_for_this_folder(a,b,c):
+    global dictionary, m, cnst
+    dictionary = a
+    m = b
+    cnst = c
 
-def do_processing_plot(self, mode):
+def do_processing_plot(window, mode):
     def energy_full_vs_energy_in_red():
         global_filename = PB.global_filename
 
@@ -143,6 +154,58 @@ def do_processing_plot(self, mode):
         #print(np.std(list_of_maximum[~np.isnan(list_of_maximum)]))
         PB.array = PB_sum / PB_sum.max()
         PB.show_plot()
+
+    def FAS_2D_folder():
+        global dictionary, m, cnst
+        global energy_min, energy_max
+        dictionary_of_match = dictionary
+        c = cnst
+        global_filename = PB.global_filename
+        pathname = os.path.dirname(global_filename)
+        filename_extension = os.path.splitext(global_filename)[-1]
+        pathname_en = os.path.dirname(global_filename).replace('Спектры', 'Энергии')
+        if (os.path.exists(pathname_en + '/TestFolder')):
+            pathname_en = pathname_en + '/TestFolder'
+        freq_class = PB.x_axis_frequency()
+        freq_array = freq_class.get_freq_unrounded()
+        angle_array = PB.get_angles_unrounded()
+        for i, file in enumerate(os.listdir(pathname)):
+            event, values = window.read(timeout=0)
+            if event == 'Cancel':
+                break
+            window['progbar'].update_bar(int(i / len(os.listdir(pathname)) * 1000) + 1)
+            if (file.endswith(filename_extension) ):#and dictionary_of_match.get(i) and dictionary_of_match.get(i)[1] > 0):
+                try:
+                    global_basename = file
+                    if file.endswith(".png"):
+                        PB.do_image_to_array('', pathname + "/" + file)
+                    elif file.endswith(".dat"):
+                        PB.do_data_to_array('', pathname + "/" + file)
+                    PB.preprocessing_plot()
+                    T, dt, wf0, wf1 = read_bin_new_Rudnev(
+                        pathname_en + '/' + os.listdir(pathname_en)[dictionary_of_match.get(i)[1]])
+                    # fig.suptitle(str(round(np.amax(wf0) * m + c, 2)) + ' mJ',
+                    #              y=1, ha='right', fontsize=12)
+                    # print(np.amax(wf0)*m+c, array[angle_from:angle_to + 1, 0: 1900].mean())
+                    from PictureBuilder import array
+                    coordinates = peak_local_max(
+                        ndi.uniform_filter(array, 20), min_distance=40)
+                    center_of_mass_y = int(ndi.measurements.center_of_mass(array)[0])
+                    time_pb = (int(file.split("_")[-3]) * 3600 + int(
+                        file.split("_")[-2]) * 60 + float(
+                        file.split("_")[-1][0:6].replace(",", ".")))
+                    #print(array.mean(), time_pb)
+                    for i, j in zip(coordinates[:, 0], coordinates[:, 1]):
+                        # 820 нм - длина накачки, 0.2 из 1.0 по интенсивности отсечет шум
+                        if array[i, j] > 0.02 and freq_array[j] > 820 and i>400 and i<500:
+                            if True:#(energy_max >= np.amax(wf0)*m+c and np.amax(wf0)*m+c >= energy_min):
+                                #plt.scatter(np.amax(wf0)*m+c, freq_array[j])
+                                print(np.amax(wf0)*m+c, time_pb, freq_array[j])
+                                #pass
+                except:
+                    print("An exception #1 occurred")
+        #plt.show(block=False)
+
 
     def FAS_3D_en():
         global_filename = PB.global_filename
@@ -313,6 +376,7 @@ def do_processing_plot(self, mode):
         'pkl': save_pkl,
         '3Den': FAS_3D_en,
         '3Ddistance': FAS_3D_dist,
+        '2D_folder': FAS_2D_folder,
         'energy_red': energy_full_vs_energy_in_red,
         'Average of folder': average
     }
