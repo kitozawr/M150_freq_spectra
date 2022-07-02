@@ -15,8 +15,7 @@ def main():
                sg.FileBrowse(file_types=(("Python Files", "*.py"),))],
               [sg.Text('Icon File'), sg.Input(key='-iconfile-', size=(45, 1)),
                sg.FileBrowse(file_types=(("Icon Files", "*.ico"),))],
-              [sg.Frame('Output', font='Any 15', layout=[
-                        [sg.Output(size=(65, 15), font='Courier 10')]])],
+              [sg.Frame('Output', font='Any 15', layout=[])],
               [sg.Button('Make EXE', bind_return_key=True),
                sg.Button('Quit', button_color=('white', 'firebrick3')) ],
               [sg.Text('Made with PySimpleGUI (www.PySimpleGUI.org)', auto_size_text=True, font='Courier 8')]]

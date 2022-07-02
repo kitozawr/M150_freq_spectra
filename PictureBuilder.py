@@ -26,7 +26,8 @@ scale = None
 graph_title = None
 path = None
 
-# Принимают значения при открытии нового файла (созданы для ввода в do_processing_all_files_in_a_folder из do_ask_open_file)
+# Принимают значения при открытии нового файла
+# (созданы для ввода в do_processing_all_files_in_a_folder из do_ask_open_file)
 global_basename = None
 global_filename = None
 
@@ -78,28 +79,29 @@ def update_progbar(window, i):
 
 
 def do_folder_preview(window, args, dictionary_of_match):
-    global data_frame, global_filename, global_basename, array, address_of_save_fig, address_of_save_df, graph_title, angle_from, angle_to, freq_to, freq_from
-    """Для всех файлов папки, где в последний раз был открыт файл, идет переконвертация (учитывая битые области, фильтры, поворот) в png.
-    Работает с последним открытым типом файлов. """
+    global data_frame, global_filename, global_basename, array, address_of_save_fig, address_of_save_df, graph_title
+    global angle_from, angle_to, freq_to, freq_from
+    """Для всех файлов папки, где в последний раз был открыт файл, идет переконвертация (учитывая битые области, 
+    фильтры, поворот) в png. Работает с последним открытым типом файлов. """
     pathname = os.path.dirname(global_filename)
     filename_extension = os.path.splitext(global_filename)[-1]
     # print(dictionary_of_match)
     if pathname:
         try:
-            os.makedirs(address_of_save_df + '/' + graph_title) if (args) else os.makedirs(
+            os.makedirs(address_of_save_df + '/' + graph_title) if args else os.makedirs(
                 address_of_save_fig + '/' + graph_title)
         except FileExistsError:
             pass  # already exists
-        file = open(address_of_save_df + '/' + graph_title + '/settings.txt', "w") if (args) else open(
+        file = open(address_of_save_df + '/' + graph_title + '/settings.txt', "w") if args else open(
             address_of_save_fig + '/' + graph_title + '/settings.txt', "w")
         file.write(repr(globals()))
         file.close()
         event, values = window.read(timeout=0)
         if values['-ENERGY-']:
-            m, c = find_kalibr(values['kalibr_folder'], path_to_save=address_of_save_df + '/' + graph_title if args else
-                    address_of_save_fig + '/' + graph_title)
+            m, c = find_kalibr(values['kalibr_folder'], path_to_save=address_of_save_df + '/' + graph_title if args
+            else address_of_save_fig + '/' + graph_title)
         pathname_en = os.path.dirname(global_filename).replace('Спектры', 'Энергии')
-        if (os.path.exists(pathname_en + '/TestFolder')):
+        if os.path.exists(pathname_en + '/TestFolder'):
             pathname_en = pathname_en + '/TestFolder'
         pathname_ac = os.path.dirname(global_filename).replace('Спектры', 'Моды')
 
@@ -108,7 +110,7 @@ def do_folder_preview(window, args, dictionary_of_match):
             if event == 'Cancel' or event is None:
                 break
             update_progbar(window, int(i / len(os.listdir(pathname)) * 1000))
-            if (file.endswith(filename_extension) and (not values['-MODE-'] or \
+            if (file.endswith(filename_extension) and (not values['-MODE-'] or
                                                        values['-MODE-'] and dictionary_of_match.get(i) and
                                                        dictionary_of_match.get(i)[0] > 0) and (
                     not values['-ENERGY-'] or values['-ENERGY-'] and dictionary_of_match.get(i) and
@@ -123,7 +125,7 @@ def do_folder_preview(window, args, dictionary_of_match):
                     preprocessing_plot()
                     show_plot()
                     fig = plt.gcf()
-                    if (values['-ENERGY-'] and dictionary_of_match.get(i) and dictionary_of_match.get(i)[1] > 0):
+                    if values['-ENERGY-'] and dictionary_of_match.get(i) and dictionary_of_match.get(i)[1] > 0:
                         T, dt, wf0, wf1 = read_bin_new_Rudnev(
                             pathname_en + '/' + os.listdir(pathname_en)[dictionary_of_match.get(i)[1]])
                         fig.suptitle(str(round(np.amax(wf0) * m + c, 2)) + ' mJ',
@@ -149,13 +151,13 @@ def do_folder_preview(window, args, dictionary_of_match):
                 except:
                     print("An exception #1 occurred")
                 try:
-                    if (values['-MODE-'] and dictionary_of_match.get(i) and dictionary_of_match.get(i)[0] > 0):
+                    if values['-MODE-'] and dictionary_of_match.get(i) and dictionary_of_match.get(i)[0] > 0:
                         data, width, height = read_raw_Mind_Vision(
                             pathname_ac + '/' + os.listdir(pathname_ac)[dictionary_of_match.get(i)[0]])
                         # print(data.mean(), array[angle_from:angle_to + 1, 0: 1900].mean())
                         fig = plt.figure()
                         plt.imshow(data, cmap='jet', aspect='auto')
-                        if (values['-ENERGY-'] and dictionary_of_match.get(i) and dictionary_of_match.get(i)[1] > 0):
+                        if values['-ENERGY-'] and dictionary_of_match.get(i) and dictionary_of_match.get(i)[1] > 0:
                             fig.savefig(address_of_save_fig + '/' + graph_title + '/' + str(
                                 round(np.amax(wf0) * m + c, 2)) + '_' + global_basename[0:-4] + "_mode.png", dpi=300)
                         else:
@@ -164,19 +166,17 @@ def do_folder_preview(window, args, dictionary_of_match):
                         plt.close()
                 except:
                     print("An exception #2 occurred")
-                # if (values['-MODE-'] and values['-ENERGY-'] and dictionary_of_match.get(i) and dictionary_of_match.get(i)[0] > 0 and dictionary_of_match.get(i)[1] > 0):
-                # print(array[angle_from:angle_to + 1, 0: 1900].mean(), data.mean(), np.amax(wf0)*m+c)
 
 
 def do_set_freq_limits(self, f):
-    '''выбор пределов построения графика set(от [нм],до [нм]) ввод через пробел'''
+    """выбор пределов построения графика set(от [нм],до [нм]) ввод через пробел"""
     global freq_from, freq_to
     freq_from = int(f.split()[0])
     freq_to = int(f.split()[1])
 
 
 def do_set_angle_limits(self, a):
-    '''выбор пределов построения графика set(от [пикс],до [пикс]) ввод через пробел'''
+    """выбор пределов построения графика set(от [пикс],до [пикс]) ввод через пробел"""
     global angle_from, angle_to
     angle_from = int(a.split()[0])
     angle_to = int(a.split()[1])
@@ -202,7 +202,7 @@ def do_ask_add_filter(self, args):
     root.filename = filedialog.askopenfilename(
         initialdir=address_of_filters, title="Select file", filetypes=(("Filters", "*.txt"), ("All files", "*.*")))
     filename = root.filename
-    if (type(filename) == str):
+    if type(filename) == str:
         filename_extension = os.path.splitext(filename)[-1]
         base = os.path.basename(filename)
         base_name = os.path.splitext(base)[0]
@@ -214,7 +214,7 @@ def do_ask_add_filter(self, args):
 def do_list_push_filter(self, name_of_file):
     """Добавить новый фильтр. Принимает название файла без расширения. Ищет в папке Filters"""
     global filters, filters_number
-    if (name_of_file != ''):
+    if name_of_file != '':
         filters_number += 1
         filters[filters_number] = name_of_file
 
@@ -248,7 +248,7 @@ def do_print_filters(self, args):
 
 def do_ask_save_file(self, args):
     """Открытие GUI окна выбора файла для сохранения"""
-    global plot, global_filename
+    global global_filename
     root = Tk()
     root.withdraw()
     root.option_add('*foreground', 'black')
@@ -267,7 +267,7 @@ def do_ask_open_file(self, reopen_without_asking_anything=False, this_filename=N
     root = Tk()
     root.withdraw()
     root.option_add('*foreground', 'black')
-    if (reopen_without_asking_anything):
+    if reopen_without_asking_anything:
         if this_filename:
             root.filename = this_filename
         else:
@@ -275,7 +275,7 @@ def do_ask_open_file(self, reopen_without_asking_anything=False, this_filename=N
     else:
         root.filename = filedialog.askopenfilename(initialdir=initdir, title="Select file", filetypes=(
             ("Data files only", "*.dat"), ("PNG files only", "*.png"), ("All files", "*.*")))
-    if (root.filename):
+    if root.filename:
         global_filename = root.filename
         global_basename = os.path.basename(root.filename)
         filename_extension = os.path.splitext(root.filename)[-1]
@@ -315,13 +315,13 @@ class x_axis_frequency:
         global array
         global grate, array, freq, new_calibration
         self.image_size = array.shape[1]
-        if (grate == 300):
+        if grate == 300:
             self.offset = 1001
             self.dispersion = 0.12505
-        elif (grate == 600):
+        elif grate == 600:
             self.offset = 1011
             self.dispersion = 0.05918
-        elif (grate == 900):
+        elif grate == 900:
             self.offset = 1018
             self.dispersion = 0.03656
         else:
@@ -387,14 +387,14 @@ def do_set_angle_step(self, args):
 def do_set_rotate(self, args):
     """Включение режима поворота на 180. ЗАПУСК БЕЗ АРГУМЕНТОВ ВЫСТАВЛЯЕТ ОТСУТСВИЕ ПОВОРОТА (также как и 0 False None)."""
     global rot180
-    if (args and args != "0" and args != 'False' and args != 'None'):
+    if args and args != "0" and args != 'False' and args != 'None':
         rot180 = True
     else:
         rot180 = False
 
 
 def preprocessing_plot(raw_output=False):
-    global data_frame, angle_rotate, angle_from, angle_to, freq_from, freq_to, this_array_has_a_plot, plot, graph_title
+    global data_frame, angle_rotate, angle_from, angle_to, freq_from, freq_to, this_array_has_a_plot, graph_title
     global rot180, freq_step, angle_step, array, scale, grate, filters, filters_number, normalize
 
     if this_array_has_a_plot:
@@ -471,16 +471,24 @@ def preprocessing_plot(raw_output=False):
         if not raw_output:
             array[array <= 0] = np.exp(-10)
             array = np.log(array)
+    elif scale == 'log10':
+        if not raw_output:
+            array[array <= 0.002] = np.exp(-10)
+            array = np.log10(array)
 
 
 def show_plot():
-    global show_pixels, data_frame, angle_from, angle_to, freq_from, freq_to, this_array_has_a_plot, plot, graph_title
-    global rot180, freq_step, angle_step, array, scale, grate, filters, filters_number, patch_mode, translate_rus, insert_title
+    global show_pixels, data_frame, angle_from, angle_to, freq_from, freq_to, this_array_has_a_plot, graph_title
+    global rot180, freq_step, angle_step, array, scale, grate, filters, filters_number, patch_mode, translate_rus
+    global insert_title
     fig, ax = plt.subplots()
 
     if scale == 'log':
         im = ax.imshow(array, cmap="nipy_spectral",
                        vmin=-5, vmax=0, aspect='auto')
+    elif scale == 'log10':
+        im = ax.imshow(array, cmap="nipy_spectral",
+                       vmin=-2.5, vmax=0, aspect='auto')
     elif normalize:
         im = ax.imshow(array, vmin=0, vmax=1, cmap="nipy_spectral", aspect='auto')
     else:
@@ -489,9 +497,14 @@ def show_plot():
     divider = make_axes_locatable(ax)
     cax = divider.append_axes("right", size="5%", pad=0.05)
     cbar = ax.figure.colorbar(im, ax=ax, cax=cax)
-    if (scale == 'log'):
+    if scale == 'log':
         ctks = [-5, -4, -3, -2, -1, 0]
-        ctkls = ["$e^{%d}$" % (v) for v in ctks[:]]
+        ctkls = ["$e^{%d}$" % v for v in ctks[:]]
+        cbar.set_ticks(ctks)
+        cbar.set_ticklabels(ctkls)
+    elif scale == 'log10':
+        ctks = [-2.5, -2, -1, 0]
+        ctkls = ["$10^{%s}$" % v for v in ctks[:]]
         cbar.set_ticks(ctks)
         cbar.set_ticklabels(ctkls)
     if translate_rus:
@@ -511,7 +524,7 @@ def show_plot():
 
     # Изменение меток на осях
     left, right = ax.get_xlim()
-    if (freq_from and freq_to):  # обрезка изображения
+    if freq_from and freq_to:  # обрезка изображения
         x_from = freq_class.index(freq_from)
         x_to = freq_class.index(freq_to)
         if not patch_mode:
@@ -542,13 +555,13 @@ def show_plot():
     if not show_pixels:
         ax.set_yticks(new_tick)
         ax.set_yticklabels(new_label)
-    if (angle_from or angle_to):
+    if angle_from or angle_to:
         if not patch_mode:
             ax.set_ylim(angle_to, angle_from)
     else:
         angle_from = 0
         angle_to = len(angle_array) - 1
-    if (patch_mode):
+    if patch_mode:
         rect = patches.Rectangle((x_from, angle_from), (x_to - x_from),
                                  (angle_to - angle_from), linewidth=1,
                                  edgecolor='r', facecolor='none')
@@ -573,8 +586,7 @@ def show_plot():
     data_frame[0, 0] = 0
     data_frame[0, 1:] = data_frame_freq_array
     data_frame[1:, 0] = data_frame_angle_array
-    data_frame[1:,
-    1 + 0 if x_from >= 0 else 1 + np.abs(x_from):1 + x_to - x_from + 1 if x_to < 1920 else 1920 - x_from] = \
+    data_frame[1:, 1 if x_from >= 0 else 1 + np.abs(x_from):1 + x_to - x_from + 1 if x_to < 1920 else 1920 - x_from] = \
         array[angle_from:angle_to + 1, x_from if x_from >= 0 else 0:x_to + 1 if x_to <= 1920 else 1920]
 
 
@@ -649,7 +661,7 @@ def do_set_parameters(self, pathname="", frequency=0, grating=0, dirname=False, 
           REDCOLOR + "по умолчанию" + NORMALCOLOR + " параметр:")
 
     path = pathname
-    if (pathname != ''):
+    if pathname != '':
         path = path + "/"
     if os.path.isfile(path + 'spectrograph_parameters.pkl'):
         with open(path + 'spectrograph_parameters.pkl', 'rb') as dir_save_file:
@@ -661,35 +673,35 @@ def do_set_parameters(self, pathname="", frequency=0, grating=0, dirname=False, 
             filters = pickle.load(dir_save_file)
             filters_number = len(filters)
     # ---begin freq
-    if (frequency):
+    if frequency:
         freq = frequency
         print(PINKCOLOR + "Frequency " + NORMALCOLOR + str(freq))
-    elif (param_turple[0]):
+    elif param_turple[0]:
         freq = param_turple[0]
         print(GREENCOLOR + "Frequency " + NORMALCOLOR + str(freq))
     else:
         freq = 800
         print(REDCOLOR + "Frequency " + NORMALCOLOR + str(freq))
     # ---begin grate
-    if (grating):
+    if grating:
         grate = grating
         print(PINKCOLOR + "Grating " + NORMALCOLOR + str(grate))
-    elif (param_turple[1]):
+    elif param_turple[1]:
         grate = param_turple[1]
         print(GREENCOLOR + "Grating " + NORMALCOLOR + str(grate))
     else:
         grate = 300
         print(REDCOLOR + "Grating " + NORMALCOLOR + str(grate))
     # ---begin rot (завязан на наличие частоты)
-    if (rotate is not None):
+    if rotate is not None:
         rot180 = rotate
-        if (rotate):
+        if rotate:
             print(PINKCOLOR + "Rotate " + NORMALCOLOR + 'True')
         else:
             print(PINKCOLOR + "Rotate " + NORMALCOLOR + 'False')
-    elif (param_turple[0]):
+    elif param_turple[0]:
         rot180 = param_turple[2]
-        if (param_turple[2]):
+        if param_turple[2]:
             print(GREENCOLOR + "Rotate " + NORMALCOLOR + 'True')
         else:
             print(GREENCOLOR + "Rotate " + NORMALCOLOR + 'False')
@@ -697,23 +709,23 @@ def do_set_parameters(self, pathname="", frequency=0, grating=0, dirname=False, 
         rot180 = True
         print(REDCOLOR + "Rotate " + NORMALCOLOR + 'True')
     # ---begin scale
-    if (scaletype):
+    if scaletype:
         scale = scaletype
         print(PINKCOLOR + "Scale " + NORMALCOLOR + scale)
-    elif (param_turple[3]):
+    elif param_turple[3]:
         scale = param_turple[3]
         print(GREENCOLOR + "Scale " + NORMALCOLOR + scale)
     else:
         scale = 'lin'
         print(REDCOLOR + "Scale " + NORMALCOLOR + scale)
     # ---begin title
-    if (title):
+    if title:
         graph_title = title
         print(PINKCOLOR + "Title " + NORMALCOLOR + graph_title)
-    elif (dirname and dirname != '..'):
+    elif dirname and dirname != '..':
         graph_title = dirname
         print(PINKCOLOR + "Title (dir) " + NORMALCOLOR + graph_title)
-    elif (param_turple[4]):
+    elif param_turple[4]:
         graph_title = param_turple[4]
         print(GREENCOLOR + "Title " + NORMALCOLOR + graph_title)
     else:
