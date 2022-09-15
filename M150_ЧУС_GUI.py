@@ -99,10 +99,21 @@ tab3_layout = [[sg.Text('Save preview of the folder to ./Output (take a few minu
 
 tab4_layout = [[sg.Canvas(size=(figure_w, figure_h), key='canvas-mode')]]
 
+tab5_layout = [[sg.Text('Choose text element:'), sg.Listbox(['title', 'xlabel', 'ylabel', 'xticklabels', 'yticklabels', 'cbartitle', 'cbarticklabels', 'energy'], size=(20, 8), key='-LIST-', enable_events=True, default_values='title')],
+                [sg.Text('_' * 89)],
+                [sg.Text('Color:', text_color='blue', font='arial 11'), sg.Input(size=(12,1), enable_events=True, k='-COLORINPUT-'), sg.Push(), sg.Text('Font style: ', font='arial 11 underline'), sg.CB('Bold', key='-bold-', change_submits=True),
+                sg.CB('Italics', key='-italics-', change_submits=True),
+                sg.CB('Underline', key='-underline-', change_submits=True), sg.Push()],
+                [sg.Text('Font size:', font='arial 14'), sg.Slider(range=(0, 50), key='_SLIDERF_', size=(50, 16), tick_interval=5, orientation='h', default_value=0, enable_events=True)],
+                [sg.Text('Font family:', font='italic'),  sg.Input(size=(12,1), enable_events=True, k='-COMBO-')],
+                [sg.Text('Ignore everything above, use default value:'), sg.CB('', key='-DEFAULT-', change_submits=True)],
+                [sg.Button('Save style')]]
+
 layout = [[sg.Menu(menu_def, tearoff=True, pad=(200, 1))],
           [sg.TabGroup([[sg.Tab('Spectrum', tab1_layout), sg.Tab('Parameters', tab2_layout),
                          sg.Tab('Data processing', tab3_layout),
-                         sg.Tab('Mode', tab4_layout, key='_tab_mode_', visible=False)]])],
+                         sg.Tab('Mode', tab4_layout, key='_tab_mode_', visible=False),
+                         sg.Tab('Fonts', tab5_layout)]])],
           [sg.Button('Open'), place(sg.Button('Show', bind_return_key=True, visible=False)),
            place(sg.Button('Save', visible=False)), sg.Button('Exit')]]
 
@@ -263,6 +274,39 @@ while True:
         window['_SHIFT_'].update(values['_SLIDER_'] / 10)
     elif event == '_SLIDERV_':
         window['_ANGLE_'].update(values['_SLIDERV_'] / 10.0)
+    elif event == '-LIST-':
+        if values['-LIST-'] == ['title']: i = 0
+        if values['-LIST-'] == ['xlabel']: i = 1
+        if values['-LIST-'] == ['ylabel']: i = 2
+        if values['-LIST-'] == ['xticklabels']: i = 3
+        if values['-LIST-'] == ['yticklabels']: i = 4
+        if values['-LIST-'] == ['cbartitle']: i = 5
+        if values['-LIST-'] == ['cbarticklabels']: i = 6
+        if values['-LIST-'] == ['energy']: i = 7
+        window['-COLORINPUT-'].update(style_list[i].color)
+        window['-bold-'].update(style_list[i].bold)
+        window['-italics-'].update(style_list[i].italics)
+        window['-underline-'].update(style_list[i].underline)
+        window['-COMBO-'].update(style_list[i].family)
+        window['_SLIDERF_'].update(style_list[i].size)
+        window['-DEFAULT-'].update(style_list[i].default)
+
+    elif event == 'Save style':
+        if values['-LIST-'] == ['title']: i = 0
+        if values['-LIST-'] == ['xlabel']: i = 1
+        if values['-LIST-'] == ['ylabel']: i = 2
+        if values['-LIST-'] == ['xticklabels']: i = 3
+        if values['-LIST-'] == ['yticklabels']: i = 4
+        if values['-LIST-'] == ['cbartitle']: i = 5
+        if values['-LIST-'] == ['cbarticklabels']: i = 6
+        if values['-LIST-'] == ['energy']: i = 7
+        style_list[i].color = values['-COLORINPUT-']
+        style_list[i].bold = values['-bold-']
+        style_list[i].italics = values['-italics-']
+        style_list[i].underline = values['-underline-']
+        style_list[i].family = values['-COMBO-']
+        style_list[i].size = values['_SLIDERF_']
+        style_list[i].default = values['-DEFAULT-']
     elif event == 'About':
         window.disappear()
         sg.popup(' ' * 29 + '~About this program~', 'Webpage: https://github.com/kitozawr/M150_freq_spectra',

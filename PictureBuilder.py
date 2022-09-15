@@ -66,6 +66,40 @@ insert_title = True
 show_pixels = False
 new_calibration = False
 
+# Параметры текста
+
+class FontStyle:
+    def __init__(self, bold, italics, underline, color, size, family, default):
+        self.bold = bold
+        self.italics = italics
+        self.underline = underline
+        self.color = color
+        self.size = size
+        self.family = family
+        self.default = default
+
+def return_fontdict (fonstyle):
+    font_style = 'normal'
+    if fonstyle.bold: font_style = 'oblique'
+    if fonstyle.italics: font_style = 'italic'
+    font = {'family': fonstyle.family,
+            'color': fonstyle.color,
+            'style': font_style,
+            'size': fonstyle.size,
+            }
+    return font
+
+#['title', 'xlabel', 'ylabel', 'xticklabels', 'yticklabels', 'cbartitle', 'cbarticklabels', 'energy']
+title_style = FontStyle(False, False, False, 'black', 16, 'calibri', True)
+xlabel_style = FontStyle(False, False, False, 'black', 16, 'calibri', True)
+ylabel_style = FontStyle(False, False, False, 'black', 16, 'calibri', True)
+xticklabels_style = FontStyle(False, False, False, 'black', 16, 'calibri', True)
+yticklabels_style = FontStyle(False, False, False, 'black', 16, 'calibri', True)
+cbartitle_style = FontStyle(False, False, False, 'black', 16, 'calibri', True)
+cbarticklabels_style = FontStyle(False, False, False, 'black', 16, 'calibri', True)
+energy_style = FontStyle(False, False, False, 'black', 16, 'calibri', True)
+style_list = [title_style,xlabel_style,ylabel_style,xticklabels_style,yticklabels_style,cbartitle_style, cbarticklabels_style,energy_style]
+
 if os.path.isfile(address_of_last_dir_savefile):
     with open(address_of_last_dir_savefile, 'rb') as dir_save_file:
         initdir = pickle.load(dir_save_file)
@@ -497,28 +531,37 @@ def show_plot():
     divider = make_axes_locatable(ax)
     cax = divider.append_axes("right", size="5%", pad=0.05)
     cbar = ax.figure.colorbar(im, ax=ax, cax=cax)
+    ctks = None
+    ctkls = None
     if scale == 'log':
         ctks = [-5, -4, -3, -2, -1, 0]
         ctkls = ["$e^{%d}$" % v for v in ctks[:]]
-        cbar.set_ticks(ctks)
-        cbar.set_ticklabels(ctkls)
     elif scale == 'log10':
         ctks = [-2.5, -2, -1, 0]
         ctkls = ["$10^{%s}$" % v for v in ctks[:]]
-        cbar.set_ticks(ctks)
-        cbar.set_ticklabels(ctkls)
+    cbar.set_ticks(ctks)
+    cbar.set_ticklabels(ctkls)
+    if not cbarticklabels_style.default:
+        cbar.ax.tick_params(labelcolor= cbarticklabels_style.color, labelsize= cbarticklabels_style.size)
+    fontc = return_fontdict(cbartitle_style) if not cbartitle_style.default else None
+    fontx = return_fontdict(xlabel_style) if not xlabel_style.default else None
+    fonty = return_fontdict(ylabel_style) if not ylabel_style.default else None
     if translate_rus:
         cbar.ax.set_ylabel("Относительная интенсивность",
-                           rotation=-90, va="bottom")
-        ax.set_ylabel('Угол, мрад')
-        ax.set_xlabel('Длина волны, нм')
+                           rotation=-90, va="bottom", fontdict = fontc)
+        ax.set_ylabel('Угол, мрад', fontdict = fonty)
+        ax.set_xlabel('Длина волны, нм', fontdict = fontx)
     else:
-        cbar.ax.set_ylabel("Relative intensity", rotation=-90, va="bottom")
-        ax.set_ylabel('Angle, mrad')
-        ax.set_xlabel('Wavelength, nm')
+        cbar.ax.set_ylabel("Relative intensity", rotation=-90, va="bottom", fontdict = fontc)
+        ax.set_ylabel('Angle, mrad', fontdict = fonty)
+        ax.set_xlabel('Wavelength, nm', fontdict = fontx)
 
     if insert_title:
-        ax.set_title(graph_title, fontsize=8)
+       font = return_fontdict(title_style)
+       if title_style.default:
+            ax.set_title(graph_title, fontsize=8)
+       else:
+            ax.set_title(graph_title, fontdict=font)
     angle_array = get_angles()
     freq_class = x_axis_frequency()
 
@@ -538,8 +581,9 @@ def show_plot():
     max_freq = freq_step * floor(freq_class.single(right) / freq_step)
     new_label = range(min_freq, max_freq + freq_step, freq_step)
     new_tick = [freq_class.index(i) for i in new_label]
+    fontx = return_fontdict(xticklabels_style) if not xticklabels_style.default else None
     ax.set_xticks(new_tick)
-    ax.set_xticklabels(new_label)
+    ax.set_xticklabels(new_label, fontdict = fontx)
 
     if not (angle_from or angle_to):
         angle_start = 0
@@ -552,9 +596,10 @@ def show_plot():
     new_label = range(min_angle, max_angle + angle_step, angle_step)
     new_tick = [find_nearest(angle_array, new_label[i])
                 for i in range(0, len(new_label))]
+    fonty = return_fontdict(yticklabels_style) if not yticklabels_style.default else None
     if not show_pixels:
         ax.set_yticks(new_tick)
-        ax.set_yticklabels(new_label)
+        ax.set_yticklabels(new_label, fontdict = fonty)
     if angle_from or angle_to:
         if not patch_mode:
             ax.set_ylim(angle_to, angle_from)
