@@ -12,7 +12,6 @@ sg.theme('Reddit')
 
 figure_w, figure_h = 650, 480
 default_kalibr_folder = 'G:/Мой диск/Филаментация/Энергии/октябрь/3/kalibr_no_lambda_ns10tr_8'
-#default_kalibr_folder = 'G:/Мой диск/Филаментация/Энергии/сентябрь/25/kalibr_AM_after_mask_lambda12'
 if os.path.isdir('G:/Мой диск/Филаментация/Энергии/'):
     default_folder_for_kalibr_folders = 'G:/Мой диск/Филаментация/Энергии/'
 else:
@@ -53,7 +52,7 @@ tab1_layout = [[sg.Canvas(size=(figure_w, figure_h), key='canvas')],
                                                             initial_folder=default_folder_for_kalibr_folders),
                 sg.Text('-', key='-energy-', size=(10, 1)), sg.Text('мДж')]]
 
-tab2_layout = [[sg.Output(size=(88, 10), key='_output_')],
+tab2_layout = [#[sg.Output(size=(88, 10), key='_output_')],
                [sg.Button('Clear', size=(10, 1))],
                [sg.Push(), sg.Text('Frequency', size=(10, 1)), sg.InputText(key='-FREQ-', size=(11, 1)),
                 sg.Button('Set frequency', size=(12, 1)), sg.Text('Grating', size=(10, 1)),
@@ -68,7 +67,7 @@ tab2_layout = [[sg.Output(size=(88, 10), key='_output_')],
                 sg.Checkbox('Crop image', default=True, key='-PATCH-', size=(8, 1)),
                 sg.Checkbox('Translate into Russian', default=True, key='-RUS-'),
                 sg.Checkbox('Insert title', default=True, key='-INSERTTITLE-'),
-                sg.Checkbox('Auto calibration', default=True, key='-NEWCALIBRATION-')],
+                sg.Text('Сalibration'), sg.Listbox(values=config.sections(), enable_events=True, default_values='02_2022', key='-NEWCALIBRATION-')],
                [sg.Text('Angle shift=', size=(10, 1)), sg.T('0', key='_SHIFT_', size=(11, 1)),
                 sg.Slider((-100, 100), key='_SLIDER_', orientation='h', default_value=0,
                           disable_number_display=True, enable_events=True)],

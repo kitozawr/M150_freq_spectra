@@ -13,6 +13,12 @@ from scipy import interpolate, ndimage
 from matcher import find_kalibr, read_bin_new_Rudnev, read_raw_Mind_Vision
 from remove_bd import *
 
+import configparser
+
+config = configparser.ConfigParser()
+config.read('CALIBR.INI')
+
+# Разметка при выводе в консоль
 REDCOLOR = '# '
 GREENCOLOR = '№ '
 PINKCOLOR = '@ '
@@ -40,7 +46,7 @@ address_of_save_fig = adress_of_home_dir + 'Output pictures'
 address_of_save_df = adress_of_home_dir + 'Output csv'
 address_of_save_pkl = adress_of_home_dir + 'Output pkl'
 
-# Сопопставление
+# Сопоставление
 A = B = None  # y=Ax+B
 dictionary_of_match = {}
 
@@ -56,7 +62,6 @@ angle_step = 2
 filters = {}
 filters_number = 0
 this_array_has_a_plot = False
-
 normalize = True
 patch_mode = False
 angle_shift = 0
@@ -64,10 +69,9 @@ angle_rotate = 0
 translate_rus = True
 insert_title = True
 show_pixels = False
-new_calibration = False
+new_calibration = None
 
 # Параметры текста
-
 class FontStyle:
     def __init__(self, bold, italics, underline, color, size, family, default):
         self.bold = bold
@@ -346,22 +350,20 @@ def do_data_to_array(self, name_of_file):
 class x_axis_frequency:
     def __init__(self):
         """Функция uз старых файлов Origin"""
-        global array
+        global array, config
         global grate, array, freq, new_calibration
         self.image_size = array.shape[1]
         if grate == 300:
-            self.offset = 1001
+            self.offset = int(config[new_calibration[0]]['300_offset'])
             self.dispersion = 0.12505
         elif grate == 600:
-            self.offset = 1011
+            self.offset = int(config[new_calibration[0]]['600_offset'])
             self.dispersion = 0.05918
         elif grate == 900:
-            self.offset = 1018
+            self.offset = int(config[new_calibration[0]]['900_offset'])
             self.dispersion = 0.03656
         else:
             print("Wrong grate")
-        if new_calibration:
-            self.offset = self.offset + 58
 
         self.freq_array = [self.single(i) for i in range(0, self.image_size)]
 
