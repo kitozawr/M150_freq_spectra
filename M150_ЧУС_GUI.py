@@ -52,7 +52,7 @@ tab1_layout = [[sg.Canvas(size=(figure_w, figure_h), key='canvas')],
                                                             initial_folder=default_folder_for_kalibr_folders),
                 sg.Text('-', key='-energy-', size=(10, 1)), sg.Text('мДж')]]
 
-tab2_layout = [#[sg.Output(size=(88, 10), key='_output_')],
+tab2_layout = [[sg.Output(size=(88, 10), key='_output_')],
                [sg.Button('Clear', size=(10, 1))],
                [sg.Push(), sg.Text('Frequency', size=(10, 1)), sg.InputText(key='-FREQ-', size=(11, 1)),
                 sg.Button('Set frequency', size=(12, 1)), sg.Text('Grating', size=(10, 1)),
@@ -128,7 +128,8 @@ print("This is debug window. Re-routing the stdout")
 kalibr_m = 0
 kalibr_c = 0
 previous_folder = ''
-kalibr_m, kalibr_c = find_kalibr(default_kalibr_folder)
+if os.path.isdir(default_kalibr_folder):
+    kalibr_m, kalibr_c = find_kalibr(default_kalibr_folder)
 while True:
     event, values = window.read()
     if event == 'Exit' or event is None:
@@ -165,7 +166,8 @@ while True:
             with open(values['kalibr_folder'] + '/kalibr.pkl', 'rb') as kalibr_save_file:
                 kalibr_m, kalibr_c = pickle.load(kalibr_save_file)
         except:
-            kalibr_m, kalibr_c = find_kalibr(values['kalibr_folder'])
+            if os.path.isdir(values['kalibr_folder']):
+                kalibr_m, kalibr_c = find_kalibr(values['kalibr_folder'])
         if dictionary_of_match.get(index_pb):
             pathname_ac = os.path.dirname(global_filename).replace('Спектры', 'Моды')
             if dictionary_of_match.get(index_pb)[0] > 0 and os.path.isfile(
