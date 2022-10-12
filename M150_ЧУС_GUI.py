@@ -52,7 +52,7 @@ tab1_layout = [[sg.Canvas(size=(figure_w, figure_h), key='canvas')],
                                                             initial_folder=default_folder_for_kalibr_folders),
                 sg.Text('-', key='-energy-', size=(10, 1)), sg.Text('мДж')]]
 
-tab2_layout = [[sg.Output(size=(88, 10), key='_output_')],
+tab2_layout = [#[sg.Output(size=(88, 10), key='_output_')],
                [sg.Button('Clear', size=(10, 1))],
                [sg.Push(), sg.Text('Frequency', size=(10, 1)), sg.InputText(key='-FREQ-', size=(11, 1)),
                 sg.Button('Set frequency', size=(12, 1)), sg.Text('Grating', size=(10, 1)),
@@ -144,7 +144,10 @@ while True:
             with open(path_to_dictionary, 'rb') as dict_save_file:
                 dictionary_of_match = pickle.load(dict_save_file)
         except:
-            dictionary_of_match = make_dictionary(os.path.dirname(global_filename))
+            try:
+                dictionary_of_match = make_dictionary(os.path.dirname(global_filename))
+            except:
+                dictionary_of_match = {}
         previous_folder = os.path.dirname(global_filename)
     elif event == 'Save' or event == "s:83" or event == 'Save       Ctrl-S':
         do_ask_save_file("", fig)
