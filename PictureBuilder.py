@@ -14,17 +14,8 @@ from matcher import find_kalibr, read_bin_new_Rudnev, read_raw_Mind_Vision
 from remove_bd import *
 
 import configparser
-from matplotlib import font_manager
 
 import numpy as np
-
-########TEMP##########
-import matplotlib
-matplotlib.rc('text', usetex=True)
-matplotlib.rcParams['text.latex.preamble'] = r"\usepackage[utf8]{inputenc} \usepackage[english,russian]{babel}  \usepackage{amsmath} \boldmath"
-matplotlib.rc('font', weight='bold', family='sans-serif')
-matplotlib.rcParams.update({'font.size': 16}) #fontsize
-######################
 
 config = configparser.ConfigParser()
 config.read('CALIBR.INI')
