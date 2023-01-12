@@ -36,6 +36,8 @@ def delete_figure_agg(figure_agg):
 def place(elem, size=(None, None)):
     return sg.Column([[elem]], size=size, pad=(0, 0), element_justification='center')
 
+latex = False
+
 
 # ------------------------------- Beginning of GUI CODE -------------------------------
 # Menu Definition
@@ -102,7 +104,9 @@ tab5_layout = [[sg.Text('Choose text element:'), sg.Listbox(['title', 'xlabel', 
                 [sg.Text('_' * 89)],
                 [sg.Text('Color:', text_color='blue', font='arial 11'), sg.Input(size=(12,1), enable_events=True, k='-COLORINPUT-'), sg.Push(), sg.Text('Font style: ', font='arial 11 underline'), sg.CB('Bold', key='-bold-', change_submits=True),
                 sg.CB('Italics', key='-italics-', change_submits=True),
-                sg.CB('Underline', key='-underline-', change_submits=True), sg.Push()],
+                sg.CB('Underline', key='-underline-', change_submits=True),
+                sg.CB('Latex', key='-latex-', change_submits=True),
+                sg.Push()],
                 [sg.Text('Font size:', font='arial 14'), sg.Slider(range=(0, 50), key='_SLIDERF_', size=(50, 16), tick_interval=5, orientation='h', default_value=0, enable_events=True)],
                 [sg.Text('Font family:', font='italic'),  sg.Input(size=(12,1), enable_events=True, k='-COMBO-')],
                 [sg.Text('Ignore everything above, use default value:'), sg.CB('', key='-DEFAULT-', change_submits=True)],
@@ -294,6 +298,12 @@ while True:
         window['-COMBO-'].update(style_list[i].family)
         window['_SLIDERF_'].update(style_list[i].size)
         window['-DEFAULT-'].update(style_list[i].default)
+        if latex:
+            matplotlib.rc('text', usetex=True)
+            matplotlib.rcParams['text.latex.preamble'] = r"\usepackage[utf8]{inputenc} \usepackage[english,russian]{babel}  \usepackage{amsmath} \boldmath"
+            matplotlib.rc('font', weight='bold', family='sans-serif')
+        else:
+            matplotlib.rcdefaults()
 
     elif event == 'Save style':
         if values['-LIST-'] == ['title']: i = 0
@@ -308,6 +318,7 @@ while True:
         style_list[i].bold = values['-bold-']
         style_list[i].italics = values['-italics-']
         style_list[i].underline = values['-underline-']
+        latex = values['-latex-']
         style_list[i].family = values['-COMBO-']
         style_list[i].size = values['_SLIDERF_']
         style_list[i].default = values['-DEFAULT-']
