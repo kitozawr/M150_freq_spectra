@@ -15,6 +15,8 @@ from remove_bd import *
 
 import configparser
 
+import numpy as np
+
 config = configparser.ConfigParser()
 config.read('CALIBR.INI')
 
@@ -84,12 +86,14 @@ class FontStyle:
 
 def return_fontdict (fonstyle):
     font_style = 'normal'
-    if fonstyle.bold: font_style = 'oblique'
+    if fonstyle.bold: font_weight = 'bold'
+    else: font_weight = 'normal'
     if fonstyle.italics: font_style = 'italic'
     font = {'family': fonstyle.family,
             'color': fonstyle.color,
             'style': font_style,
             'size': fonstyle.size,
+            'weight': font_weight
             }
     return font
 
@@ -99,10 +103,10 @@ xlabel_style = FontStyle(False, False, False, 'black', 16, 'calibri', True)
 ylabel_style = FontStyle(False, False, False, 'black', 16, 'calibri', True)
 xticklabels_style = FontStyle(False, False, False, 'black', 16, 'calibri', True)
 yticklabels_style = FontStyle(False, False, False, 'black', 16, 'calibri', True)
-cbartitle_style = FontStyle(False, False, False, 'black', 16, 'calibri', True)
-cbarticklabels_style = FontStyle(False, False, False, 'black', 16, 'calibri', True)
+cbartitle_style = FontStyle(True, False, False, 'black', 16, 'calibri', True)
+cbarticklabels_style = FontStyle(True, False, False, 'black', 16, 'calibri', True)
 energy_style = FontStyle(False, False, False, 'black', 16, 'calibri', True)
-style_list = [title_style,xlabel_style,ylabel_style,xticklabels_style,yticklabels_style,cbartitle_style, cbarticklabels_style,energy_style]
+style_list = [title_style, xlabel_style, ylabel_style, xticklabels_style, yticklabels_style, cbartitle_style, cbarticklabels_style, energy_style]
 
 if os.path.isfile(address_of_last_dir_savefile):
     with open(address_of_last_dir_savefile, 'rb') as dir_save_file:
@@ -541,8 +545,12 @@ def show_plot():
     elif scale == 'log10':
         ctks = [-2.5, -2, -1, 0]
         ctkls = ["$10^{%s}$" % v for v in ctks[:]]
-    cbar.set_ticks(ctks)
-    cbar.set_ticklabels(ctkls)
+
+    if ctks is not None:
+        fontctkls = return_fontdict(cbarticklabels_style) if not cbarticklabels_style.default else None
+        cbar.set_ticks(ctks, fontdict = fontctkls)
+        cbar.set_ticklabels(ctkls)
+        cbar.ax.set_yticklabels(ctkls, fontdict=fontctkls)
     if not cbarticklabels_style.default:
         cbar.ax.tick_params(labelcolor= cbarticklabels_style.color, labelsize= cbarticklabels_style.size)
     fontc = return_fontdict(cbartitle_style) if not cbartitle_style.default else None
